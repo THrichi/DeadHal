@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawing.setMode(Global.ADD);
-                Rectangle r = new Rectangle("7887544", 300, 300, 600, 600, Color.RED);
+                Rectangle r = new Rectangle("7887544", 100, 200, 300, 800, Color.RED);
+                r.setRotation(22);
                 rectangles.add(r);
                 drawing.setRectangles(rectangles);
                 buttonColors(Global.ADD);
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         zoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                drawing.setMode(Global.ZOOM);
                 buttonColors(Global.ZOOM);
                 buttonsLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.VISIBLE);

@@ -10,6 +10,9 @@ public class Rectangle implements Serializable {
     private Paint paint;
     private RectF rectangle;
     private int color;
+    private float rotation;
+    private String name;
+
 
     public Rectangle(String UID, int left, int top, int right, int bottom, int color) {
         this.UID = UID;
@@ -21,6 +24,7 @@ public class Rectangle implements Serializable {
         paint.setAntiAlias(false);
         rectangle = new RectF(left,top,right,bottom);
     }
+
     public Paint getPaint() {
         return paint;
     }
@@ -44,6 +48,22 @@ public class Rectangle implements Serializable {
     public void setColor(int color) {
         this.color = color;
         this.paint.setColor(color);
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String UID() {

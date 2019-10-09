@@ -46,7 +46,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         super(context, attrs);
         this.rectangles = new ArrayList<>();
         this.context = context;
-        gestureDetector = new GestureDetector(context,this);
+        gestureDetector = new GestureDetector(context, this);
         gestureDetector.setOnDoubleTapListener(this);
     }
 
@@ -58,7 +58,11 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         canvas.save();
         canvas.scale(scale, scale);
         for (Rectangle rect : rectangles) {
+            //canvas.drawRect(rect.getRectangle(), rect.getPaint());
+            canvas.save();
+            canvas.rotate(rect.getRotation(), rect.getRectangle().left, rect.getRectangle().top);
             canvas.drawRect(rect.getRectangle(), rect.getPaint());
+            canvas.restore();
         }
         canvas.restore();
     }
@@ -66,6 +70,10 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Boolean value = super.onTouchEvent(event);
+        int nbTouch = event.getPointerCount();
+        int firstX = (int) event.getX();
+        int firstY = (int) event.getY();
+        Log.d(Global.TAG, "onTouchEvent: " + nbTouch);
         gestureDetector.onTouchEvent(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
@@ -77,7 +85,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         selectedRect = rect;
                     }
                 }
-                if(selectedRect!=null){
+                if (selectedRect != null) {
                     rectangles.remove(selectedRect);
                     selectedRect.setColor(Color.YELLOW);
                     rectangles.add(selectedRect);
@@ -94,22 +102,31 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             case MotionEvent.ACTION_MOVE: {
                 if (mode.equals(Global.MOOVE)) {
                     if (selectedRect != null) {
-                        Log.d(Global.TAG,  selectedRect.getRectangle().bottom + "<" + screenHeight + " ########## " + screenWidth + "<" + selectedRect.getRectangle().right);
-                        if (selectedRect.getRectangle().right <= screenWidth && selectedRect.getRectangle().bottom <= screenHeight ) {
                         rectangles.remove(selectedRect);
                         selectedRect.getRectangle().offsetTo(event.getX(), event.getY());
                         rectangles.add(selectedRect);
+                    }
+                } else if (mode.equals(Global.ADD)) {
+
+                } else if (mode.equals(Global.RESIZE)) {
+                    if (nbTouch == 2) {
+                        int X1 = (int) event.getX(0);
+                        int X2 = (int) event.getX(1);
+                        if (selectedRect != null) {
+                            if (X1 != event.getX(0) && X2 != event.getX(1)) {
+                                X1 = (int) event.getX(0);
+                                X2 = (int) event.getX(1);
+                                rectangles.remove(selectedRect);
+                                if (event.getX(0) < event.getX(1)) {
+                                    selectedRect.setRotation(selectedRect.getRotation() + 2);
+                                } else {
+                                    selectedRect.setRotation(selectedRect.getRotation() - 2);
+                                }
+                                rectangles.add(selectedRect);
+                            }
                         }
                     }
-                }else if (mode.equals(Global.ADD)) {
-                    if (selectedRect != null) {
-                        Log.d(Global.TAG,  selectedRect.getRectangle().bottom + "<" + screenHeight + " ########## " + screenWidth + "<" + selectedRect.getRectangle().right);
-                        if (selectedRect.getRectangle().right <= screenWidth && selectedRect.getRectangle().bottom <= screenHeight ) {
-                            rectangles.remove(selectedRect);
-                            selectedRect.getRectangle().offsetTo(event.getX(), event.getY());
-                            rectangles.add(selectedRect);
-                        }
-                    }
+
                 }
                 postInvalidate();
             }
@@ -128,16 +145,15 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public boolean onDragEvent(DragEvent event) {
-        boolean value =  super.onDragEvent(event);
+        boolean value = super.onDragEvent(event);
         switch (event.getAction()) {
             case DragEvent.ACTION_DRAG_ENDED: {
 
             }
             return true;
         }
-        return  value;
+        return value;
     }
-
 
 
     public void addRectangle(Rectangle rectangle) {
@@ -158,8 +174,9 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         this.scale = scale;
         postInvalidate();
     }
-    public void remove(){
-        if(selectedRect!=null){
+
+    public void remove() {
+        if (selectedRect != null) {
             rectangles.remove(selectedRect);
             selectedRect = null;
             postInvalidate();
@@ -168,37 +185,37 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        Toast.makeText(context,"onSingleTapConfirmed",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onSingleTapConfirmed", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        Toast.makeText(context,"onDoubleTap",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onDoubleTap", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDoubleTapEvent(MotionEvent e) {
-        Toast.makeText(context,"onDoubleTapEvent",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onDoubleTapEvent", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDown(MotionEvent e) {
-        Toast.makeText(context,"onDown",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onDown", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public void onShowPress(MotionEvent e) {
-        Toast.makeText(context,"onShowPress",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onShowPress", Toast.LENGTH_SHORT).show();
 
     }
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        Toast.makeText(context,"onSingleTapUp",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onSingleTapUp", Toast.LENGTH_SHORT).show();
         return true;
     }
 
@@ -209,12 +226,12 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public void onLongPress(MotionEvent e) {
-        Toast.makeText(context,"onLongPress",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onLongPress", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        Toast.makeText(context,"onFling",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "onFling", Toast.LENGTH_SHORT).show();
         return true;
     }
 }
