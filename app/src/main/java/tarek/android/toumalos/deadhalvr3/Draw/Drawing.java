@@ -34,7 +34,11 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     private int clickedX, clickedY;
     private int screenWidth, screenHeight;
     private float scale = 1;
+    private float scaleY = 0;
+    private float scaleX = 0;
     private float direction = 1;
+    private Rectangle longPressRect1;
+    private boolean movingScalY = false, movingScalX = false;
     private GestureDetector gestureDetector;
     private Context context;
 
@@ -58,13 +62,19 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         canvas.save();
         canvas.scale(scale, scale);
         for (Rectangle rect : rectangles) {
-            //canvas.drawRect(rect.getRectangle(), rect.getPaint());
+
+            if(mode.equals(Global.RELATION) && rect!= longPressRect1){
+                rect.getPaint().setStyle(Paint.Style.STROKE);
+            }else{
+                rect.getPaint().setStyle(Paint.Style.FILL);
+            }
             canvas.save();
             canvas.rotate(rect.getRotation(), rect.getRectangle().left, rect.getRectangle().top);
             canvas.drawRect(rect.getRectangle(), rect.getPaint());
             canvas.restore();
         }
         canvas.restore();
+
     }
 
     @Override
@@ -114,8 +124,6 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         int X2 = (int) event.getX(1);
                         if (selectedRect != null) {
                             if (X1 != event.getX(0) && X2 != event.getX(1)) {
-                                X1 = (int) event.getX(0);
-                                X2 = (int) event.getX(1);
                                 rectangles.remove(selectedRect);
                                 if (event.getX(0) < event.getX(1)) {
                                     selectedRect.setRotation(selectedRect.getRotation() + 2);
@@ -134,8 +142,12 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
 
             case MotionEvent.ACTION_UP: {
-                if (mode.equals(Global.MOOVE)) {
+                if (mode.equals(Global.RELATION)) {
+                    for (Rectangle rect : rectangles) {
+                        if(rect != longPressRect1 &&  rect.getRectangle().contains(event.getX(),event.getY())){
 
+                        }
+                    }
                 }
             }
             return true;
@@ -155,12 +167,6 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return value;
     }
 
-
-    public void addRectangle(Rectangle rectangle) {
-        rectangles.add(rectangle);
-        postInvalidate();
-    }
-
     public void setMode(String mode) {
         this.mode = mode;
     }
@@ -175,6 +181,49 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         postInvalidate();
     }
 
+    @Override
+    public void setScaleY(float scaleY) {
+        this.scaleY = scaleY;
+        movingScalY = true;
+        movingScalX = false;
+        scale();
+        postInvalidate();
+    }
+
+    @Override
+    public void setScaleX(float scaleX) {
+        this.scaleX = scaleX;
+        movingScalY = false;
+        movingScalX = true;
+        scale();
+        postInvalidate();
+    }
+
+    @Override
+    public float getScaleY() {
+        return scaleY;
+    }
+
+    @Override
+    public float getScaleX() {
+        return scaleX;
+    }
+
+    public void scale(){
+        List<Rectangle> rectangles = new ArrayList<>();
+        for (Rectangle rect: this.rectangles) {
+            if (movingScalY) {
+                rect.getRectangle().top = rect.getRectangle().top + scaleY;
+                rect.getRectangle().bottom = rect.getRectangle().bottom + scaleY;
+            } else if (movingScalX) {
+                rect.getRectangle().left = rect.getRectangle().left + scaleX;
+                rect.getRectangle().right = rect.getRectangle().right + scaleX;
+            }
+            rectangles.add(rect);
+        }
+        this.rectangles = new ArrayList<>(rectangles);
+    }
+
     public void remove() {
         if (selectedRect != null) {
             rectangles.remove(selectedRect);
@@ -185,37 +234,31 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        Toast.makeText(context, "onSingleTapConfirmed", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        Toast.makeText(context, "onDoubleTap", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDoubleTapEvent(MotionEvent e) {
-        Toast.makeText(context, "onDoubleTapEvent", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public boolean onDown(MotionEvent e) {
-        Toast.makeText(context, "onDown", Toast.LENGTH_SHORT).show();
         return true;
     }
 
     @Override
     public void onShowPress(MotionEvent e) {
-        Toast.makeText(context, "onShowPress", Toast.LENGTH_SHORT).show();
 
     }
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        Toast.makeText(context, "onSingleTapUp", Toast.LENGTH_SHORT).show();
         return true;
     }
 
@@ -226,7 +269,14 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public void onLongPress(MotionEvent e) {
-        Toast.makeText(context, "onLongPress", Toast.LENGTH_SHORT).show();
+        for (Rectangle rect: rectangles) {
+            if(rect.getRectangle().contains(e.getX(),e.getY())){
+                Toast.makeText(context,rect.getName(),Toast.LENGTH_SHORT).show();
+                mode=Global.RELATION;
+                longPressRect1 = rect;
+                postInvalidate();
+            }
+        }
     }
 
     @Override

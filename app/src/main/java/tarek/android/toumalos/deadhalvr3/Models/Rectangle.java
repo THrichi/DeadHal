@@ -12,6 +12,8 @@ public class Rectangle implements Serializable {
     private int color;
     private float rotation;
     private String name;
+    private float fixBottom;
+    private float fixRight;
 
 
     public Rectangle(String UID, int left, int top, int right, int bottom, int color) {
@@ -23,6 +25,8 @@ public class Rectangle implements Serializable {
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(false);
         rectangle = new RectF(left,top,right,bottom);
+        this.fixBottom = bottom;
+        this.fixRight = right;
     }
 
     public Paint getPaint() {
@@ -64,6 +68,22 @@ public class Rectangle implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public float getFixBottom() {
+        return fixBottom;
+    }
+
+    public void setFixBottom(float fixBottom) {
+        this.fixBottom = fixBottom;
+    }
+
+    public float getFixRight() {
+        return fixRight;
+    }
+
+    public void setFixRight(float fixRight) {
+        this.fixRight = fixRight;
     }
 
     public String UID() {

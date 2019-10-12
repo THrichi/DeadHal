@@ -1,5 +1,6 @@
 package tarek.android.toumalos.deadhalvr3;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,16 +24,20 @@ public class MainActivity extends AppCompatActivity {
 
     private Drawing drawing;
     private Button add, move, resize, remove,zoom,cancel;
-    private SeekBar seekZoom;
+    private SeekBar seekZoom,seekY,seekX;
     private LinearLayout buttonsLayout,seekLayout;
     private List<Rectangle> rectangles;
     private int left = 0;
     private int top = 0;
+    private Context context;
+    private int oldYprogress=-1;
+    private int oldXprogress=-1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this;
 
         rectangles = new ArrayList<>();
         rectangles.add(new Rectangle("7887544", left, top, 300, 300, Color.RED));
@@ -47,23 +53,26 @@ public class MainActivity extends AppCompatActivity {
         zoom = (Button) findViewById(R.id.zoom);
         cancel = (Button) findViewById(R.id.cancel);
         seekZoom = (SeekBar)  findViewById(R.id.SeekZoom);
+        seekY = (SeekBar)  findViewById(R.id.SeekX);
+        seekX = (SeekBar)  findViewById(R.id.SeekY);
         buttonsLayout = (LinearLayout) findViewById(R.id.buttonsLayout);
         seekLayout = (LinearLayout)  findViewById(R.id.SeekLayout);
 
         buttonsLayout.setBackgroundColor(Color.LTGRAY);
         seekZoom.setMax(20);
         seekZoom.setProgress(10);
+        seekY.setProgress(0);
+        seekX.setProgress(0);
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawing.setMode(Global.ADD);
                 Rectangle r = new Rectangle("7887544", 100, 200, 300, 800, Color.RED);
-                r.setRotation(22);
+                r.setName("Flaki");
                 rectangles.add(r);
                 drawing.setRectangles(rectangles);
                 buttonColors(Global.ADD);
-                drawing.setScale(1);
             }
         });
 
@@ -72,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawing.setMode(Global.MOOVE);
                 buttonColors(Global.MOOVE);
-                drawing.setScale(1);
             }
         });
         remove.setOnClickListener(new View.OnClickListener() {
@@ -80,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawing.setMode(Global.REMOVE);
                 buttonColors(Global.REMOVE);
-                drawing.setScale(1);
                 dialogConfirmation();
             }
         });
@@ -89,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawing.setMode(Global.RESIZE);
                 buttonColors(Global.RESIZE);
-                drawing.setScale(1);
             }
         });
         zoom.setOnClickListener(new View.OnClickListener() {
@@ -113,6 +119,48 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 drawing.setScale(ZoomValue(seekZoom.getProgress()));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekY.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(oldYprogress > seekY.getProgress()){
+                    drawing.setScaleY(-100);
+                }else{
+                    drawing.setScaleY(+100);
+                }
+                oldYprogress = seekY.getProgress();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekX.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(oldXprogress > seekX.getProgress()){
+                    drawing.setScaleX(-300);
+                }else{
+                    drawing.setScaleX(+300);
+                }
+                oldXprogress = seekX.getProgress();
             }
 
             @Override

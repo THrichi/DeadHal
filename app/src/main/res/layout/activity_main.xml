@@ -18,6 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:visibility="visible"
         android:layout_weight="0">
 
         <Button
@@ -59,10 +60,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_weight="0">
+        android:visibility="gone">
         <SeekBar
             android:id="@+id/SeekZoom"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:outlineAmbientShadowColor="#03A9F4"
+            android:outlineSpotShadowColor="#03A9F4"
+            />
+        <SeekBar
+            android:id="@+id/SeekY"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:outlineAmbientShadowColor="#03A9F4"
+            android:outlineSpotShadowColor="#03A9F4"
+            />
+        <SeekBar
+            android:id="@+id/SeekX"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -73,7 +89,7 @@
             android:id="@+id/cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:text="x" />
     </LinearLayout>
 </LinearLayout>
