@@ -92,4 +92,56 @@
             android:layout_weight="0"
             android:text="x" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/addingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_weight="0">
+
+        <EditText
+            android:id="@+id/rectW"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:inputType="number"
+            android:text="400"
+            android:hint="Width"
+            />
+        <EditText
+            android:id="@+id/rectH"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:inputType="number"
+            android:text="400"
+            android:hint="Height" />
+        <EditText
+            android:id="@+id/rectName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:inputType="text"
+            android:text="Toto"
+            android:hint="Name" />
+
+        <Button
+            android:id="@+id/valideAdd"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Add" />
+        <Button
+            android:id="@+id/cancelAdd"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="x" />
+
+    </LinearLayout>
 </LinearLayout>

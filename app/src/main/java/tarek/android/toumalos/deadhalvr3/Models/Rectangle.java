@@ -1,32 +1,93 @@
 package tarek.android.toumalos.deadhalvr3.Models;
 
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Rectangle implements Serializable {
     private String UID;
     private Paint paint;
     private RectF rectangle;
-    private int color;
+    private RectF interetRectangle;
+    private int normalColor;
+    private int selectedColor;
     private float rotation;
     private String name;
     private float fixBottom;
     private float fixRight;
+    private int textSize;
+    private int textColor;
+    private Paint textPaint;
+    private Paint interetPaint;
+    private Paint interetRectPaint;
+    private String interet;
 
 
-    public Rectangle(String UID, int left, int top, int right, int bottom, int color) {
-        this.UID = UID;
+    public Rectangle(String name, int right, int bottom,int textSize, int textColor) {
+        UUID uuid = UUID.randomUUID();
+        this.UID = uuid.toString();
+        this.normalColor = Color.rgb(128,128,192);
+        this.selectedColor = Color.rgb(119,187,255);
         paint = new Paint();
         paint.reset();
-        paint.setColor(color);
-        paint.setStrokeWidth(5);
+        paint.setColor(normalColor);
+        paint.setStrokeWidth(7);
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(false);
-        rectangle = new RectF(left,top,right,bottom);
+        rectangle = new RectF(0,0,right,bottom);
+        interetRectangle = new RectF(rectangle.left/2,rectangle.top/2,rectangle.right/2,rectangle.bottom/2);
         this.fixBottom = bottom;
         this.fixRight = right;
+
+        this.name = name;
+        this.textSize = textSize;
+        this.textColor = textColor;
+        this.interet ="Cuisine";
+
+        textPaint = new Paint();
+        textPaint.reset();
+        textPaint.setColor(textColor);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setStrokeWidth(10);
+        textPaint.setTextSize(textSize);
+        textPaint.setStyle(Paint.Style.FILL);
+        textPaint.setAntiAlias(false);
+
+        interetPaint = new Paint();
+        interetPaint.reset();
+        interetPaint.setColor(textColor);
+        interetPaint.setTextAlign(Paint.Align.CENTER);
+        interetPaint.setStrokeWidth(10);
+        interetPaint.setTextSize(textSize);
+        interetPaint.setStyle(Paint.Style.FILL);
+        interetPaint.setAntiAlias(false);
+
+
+        interetRectPaint = new Paint();
+        interetRectPaint.reset();
+        interetRectPaint.setColor(Color.rgb(119,119,0));
+        interetRectPaint.setStrokeWidth(5);
+        interetRectPaint.setStyle(Paint.Style.FILL);
+        interetRectPaint.setAntiAlias(false);
+    }
+
+    public int getNormalColor() {
+        return normalColor;
+    }
+
+    public int getSelectedColor() {
+        return selectedColor;
+    }
+
+    public RectF getInteretRectangle() {
+        return interetRectangle;
+    }
+
+    public void setInteretRectangle(RectF interetRectangle) {
+        this.interetRectangle = interetRectangle;
     }
 
     public Paint getPaint() {
@@ -45,12 +106,7 @@ public class Rectangle implements Serializable {
         this.rectangle = rectangle;
     }
 
-    public int getColor() {
-        return color;
-    }
-
     public void setColor(int color) {
-        this.color = color;
         this.paint.setColor(color);
     }
 
@@ -84,6 +140,67 @@ public class Rectangle implements Serializable {
 
     public void setFixRight(float fixRight) {
         this.fixRight = fixRight;
+    }
+
+    public float getTextStartX() {
+        return  (rectangle.left + rectangle.right) / 2;
+    }
+    public float getTextStartY() {
+        return  (rectangle.top + rectangle.bottom) / 2;
+    }
+    public float getInteretStartX() {
+        return  (interetRectangle.left + interetRectangle.right) / 2;
+    }
+    public float getInteretStartY() {
+        return  (interetRectangle.top + interetRectangle.bottom) / 2;
+    }
+
+    public Paint getTextPaint() {
+        return textPaint;
+    }
+
+    public int getTextSize() {
+        return textSize;
+    }
+
+    public Paint getInteretPaint() {
+        return interetPaint;
+    }
+
+    public void setInteretPaint(Paint interetPaint) {
+        this.interetPaint = interetPaint;
+    }
+
+    public Paint getInteretRectPaint() {
+        return interetRectPaint;
+    }
+
+    public void setInteretRectPaint(Paint interetRectPaint) {
+        this.interetRectPaint = interetRectPaint;
+    }
+
+    public String getInteret() {
+        return interet;
+    }
+
+    public void setInteret(String interet) {
+        this.interet = interet;
+    }
+
+    public void setTextSize(int textSize) {
+        this.textSize = textSize;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public void setTextPaint(Paint textPaint) {
+        this.textPaint = textPaint;
     }
 
     public String UID() {

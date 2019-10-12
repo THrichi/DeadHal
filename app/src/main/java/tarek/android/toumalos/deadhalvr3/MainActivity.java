@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
@@ -23,9 +24,10 @@ import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
 public class MainActivity extends AppCompatActivity {
 
     private Drawing drawing;
-    private Button add, move, resize, remove,zoom,cancel;
+    private Button add, move, resize, remove,zoom,cancel,valideAdd,cancelAdd;
+    private EditText rectW,rectH,rectName;
     private SeekBar seekZoom,seekY,seekX;
-    private LinearLayout buttonsLayout,seekLayout;
+    private LinearLayout buttonsLayout,seekLayout,addingLayout;
     private List<Rectangle> rectangles;
     private int left = 0;
     private int top = 0;
@@ -40,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
         context = this;
 
         rectangles = new ArrayList<>();
-        rectangles.add(new Rectangle("7887544", left, top, 300, 300, Color.RED));
 
         drawing = (Drawing) findViewById(R.id.drawing);
 
@@ -52,11 +53,18 @@ public class MainActivity extends AppCompatActivity {
         remove = (Button) findViewById(R.id.remove);
         zoom = (Button) findViewById(R.id.zoom);
         cancel = (Button) findViewById(R.id.cancel);
+        cancelAdd = (Button) findViewById(R.id.cancelAdd);
+        valideAdd = (Button) findViewById(R.id.valideAdd);
         seekZoom = (SeekBar)  findViewById(R.id.SeekZoom);
         seekY = (SeekBar)  findViewById(R.id.SeekX);
         seekX = (SeekBar)  findViewById(R.id.SeekY);
         buttonsLayout = (LinearLayout) findViewById(R.id.buttonsLayout);
         seekLayout = (LinearLayout)  findViewById(R.id.SeekLayout);
+        addingLayout = (LinearLayout)  findViewById(R.id.addingLayout);
+
+        rectH = (EditText)  findViewById(R.id.rectH);
+        rectW = (EditText)  findViewById(R.id.rectW);
+        rectName = (EditText)  findViewById(R.id.rectName);
 
         buttonsLayout.setBackgroundColor(Color.LTGRAY);
         seekZoom.setMax(20);
@@ -67,15 +75,39 @@ public class MainActivity extends AppCompatActivity {
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                drawing.setMode(Global.ADD);
+                /*drawing.setMode(Global.ADD);
                 Rectangle r = new Rectangle("7887544", 100, 200, 300, 800, Color.RED);
-                r.setName("Flaki");
                 rectangles.add(r);
-                drawing.setRectangles(rectangles);
+                drawing.setRectangles(rectangles);*/
+                buttonsLayout.setVisibility(View.GONE);
+                seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.VISIBLE);
                 buttonColors(Global.ADD);
             }
         });
+        cancelAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buttonsLayout.setVisibility(View.VISIBLE);
+                seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.NOTHING);
+            }
+        });
+        valideAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawing.setMode(Global.ADD);
+                Rectangle r = new Rectangle(rectName.getText().toString(), Integer.parseInt((rectW.getText().toString())), Integer.parseInt((rectH.getText().toString())), 58, Color.BLACK);
+                rectangles.add(r);
+                drawing.setRectangles(rectangles);
 
+                buttonsLayout.setVisibility(View.VISIBLE);
+                seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.NOTHING);
+            }
+        });
         move.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -105,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 buttonColors(Global.ZOOM);
                 buttonsLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.VISIBLE);
+                addingLayout.setVisibility(View.GONE);
             }
         });
         cancel.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
                 seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
             }
         });
 

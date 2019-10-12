@@ -9,5 +9,6 @@ public class Global {
     public final static String RESIZE ="RESIZE";
     public final static String TAG ="Flaki";
     public final static String RELATION ="RELATION";
+    public final static String NOTHING ="";
 
 }

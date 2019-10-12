@@ -4,30 +4,25 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.RectF;
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Display;
 import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import tarek.android.toumalos.deadhalvr3.Const.Global;
+import tarek.android.toumalos.deadhalvr3.Models.Line;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
 
 public class Drawing extends View implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
 
     public List<Rectangle> rectangles;
+    public List<Line> lines;
     private String mode = "";
     private int moovingRight = 0, moovingBottom = 0;
     private Rectangle selectedRect;
@@ -49,6 +44,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     public Drawing(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.rectangles = new ArrayList<>();
+        this.lines = new ArrayList<>();
         this.context = context;
         gestureDetector = new GestureDetector(context, this);
         gestureDetector.setOnDoubleTapListener(this);
@@ -57,10 +53,16 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
         screenWidth = canvas.getWidth();
         screenHeight = canvas.getHeight();
         canvas.save();
         canvas.scale(scale, scale);
+
+        for ( Line line : lines) {
+            canvas.drawLine(line.getStartX(),line.getStartY(),line.getStopX(),line.getStopY(),line.getPaint());
+        }
+
         for (Rectangle rect : rectangles) {
 
             if(mode.equals(Global.RELATION) && rect!= longPressRect1){
@@ -71,9 +73,15 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             canvas.save();
             canvas.rotate(rect.getRotation(), rect.getRectangle().left, rect.getRectangle().top);
             canvas.drawRect(rect.getRectangle(), rect.getPaint());
+            canvas.drawText(rect.getName(),rect.getTextStartX(),rect.getTextStartY(),rect.getTextPaint());
+            if(!rect.getInteret().equals("")){
+                canvas.drawRect(rect.getInteretRectangle(), rect.getInteretRectPaint());
+                canvas.drawText(rect.getInteret(),rect.getInteretStartX(),rect.getInteretStartY(),rect.getInteretPaint());
+            }
             canvas.restore();
         }
         canvas.restore();
+
 
     }
 
@@ -83,21 +91,22 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         int nbTouch = event.getPointerCount();
         int firstX = (int) event.getX();
         int firstY = (int) event.getY();
-        Log.d(Global.TAG, "onTouchEvent: " + nbTouch);
+
         gestureDetector.onTouchEvent(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
                 clickedX = (int) event.getX();
                 clickedY = (int) event.getY();
                 for (Rectangle rect : rectangles) {
-                    rect.setColor(Color.RED);
+                    rect.setColor(rect.getNormalColor());
                     if (rect.getRectangle().contains(event.getX(), event.getY())) {
                         selectedRect = rect;
                     }
                 }
                 if (selectedRect != null) {
                     rectangles.remove(selectedRect);
-                    selectedRect.setColor(Color.YELLOW);
+                    selectedRect.setColor(selectedRect.getSelectedColor());
+                    changesRelationColors(selectedRect);
                     rectangles.add(selectedRect);
                 }
 
@@ -145,10 +154,12 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                 if (mode.equals(Global.RELATION)) {
                     for (Rectangle rect : rectangles) {
                         if(rect != longPressRect1 &&  rect.getRectangle().contains(event.getX(),event.getY())){
-
+                            lines.add(new Line(longPressRect1,rect,Color.BLUE));
+                            mode = "";
                         }
                     }
                 }
+                postInvalidate();
             }
             return true;
         }
@@ -227,9 +238,46 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     public void remove() {
         if (selectedRect != null) {
             rectangles.remove(selectedRect);
+            if(lines.size() > 0)
+                removeLines(selectedRect);
             selectedRect = null;
             postInvalidate();
         }
+    }
+
+    public void changesRelationColors(Rectangle rectangle){
+        List<Line> result = new ArrayList<>();
+        reset();
+        for (Line line : lines) {
+            if(line.getRectangle1().equals(rectangle)){
+                Rectangle tmp = line.getRectangle2();
+                rectangles.remove(tmp);
+                tmp.setColor(Color.rgb(255,166,255));
+                rectangles.add(tmp);
+                result.add(line);
+            }
+            if(line.getRectangle1().equals(rectangle) || line.getRectangle2().equals(rectangle)){
+                line.setColor(Color.RED);
+            }
+        }
+    }
+
+    private void reset() {
+        for (Line line : lines) {
+            line.setColor(Color.BLUE);
+        }
+    }
+
+
+    public void removeLines(Rectangle rectangle){
+        List<Line> result = new ArrayList<>();
+        for (Line line : lines) {
+            Log.d(Global.TAG,line.toString());
+            if(!line.contains(rectangle)){
+                result.add(line);
+            }
+        }
+        lines = new ArrayList<>(result);
     }
 
     @Override
@@ -281,7 +329,6 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        Toast.makeText(context, "onFling", Toast.LENGTH_SHORT).show();
         return true;
     }
 }
