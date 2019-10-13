@@ -85,6 +85,6 @@ public class Line {
 
     @Override
     public String toString() {
-        return "Rec 1 : " + rectangle1.toString() +"\nRec 2 : " + rectangle2.toString() + "\n";
+        return "Rec 1 : " + rectangle1.getName() +"\nRec 2 : " + rectangle2.getName() + "\n";
     }
 }

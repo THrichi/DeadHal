@@ -2,10 +2,12 @@ package tarek.android.toumalos.deadhalvr3;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,13 +15,22 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Draw.Drawing;
+import tarek.android.toumalos.deadhalvr3.Models.Maze;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
+import tarek.android.toumalos.deadhalvr3.Models.RectangleParser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,25 +39,30 @@ public class MainActivity extends AppCompatActivity {
     private EditText rectW,rectH,rectName;
     private SeekBar seekZoom,seekY,seekX;
     private LinearLayout buttonsLayout,seekLayout,addingLayout;
-    private List<Rectangle> rectangles;
+    private Maze theMaze;
     private int left = 0;
     private int top = 0;
     private Context context;
     private int oldYprogress=-1;
     private int oldXprogress=-1;
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+    //Firestore
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference mazebookRef = db.collection(user.getUid());
+    private DocumentReference mazeBookRefDoc;
+    private String mazeName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
-
-        rectangles = new ArrayList<>();
-
+        mazeName = getIntent().getStringExtra("MazeName");
+        mazeBookRefDoc = mazebookRef.document(mazeName);
         drawing = (Drawing) findViewById(R.id.drawing);
 
-        drawing.setRectangles(rectangles);
-
+        drawing.setTheMaze(theMaze);
         add = (Button) findViewById(R.id.add);
         move = (Button) findViewById(R.id.move);
         resize = (Button) findViewById(R.id.resize);
@@ -98,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawing.setMode(Global.ADD);
-                Rectangle r = new Rectangle(rectName.getText().toString(), Integer.parseInt((rectW.getText().toString())), Integer.parseInt((rectH.getText().toString())), 58, Color.BLACK);
-                rectangles.add(r);
-                drawing.setRectangles(rectangles);
+                RectangleParser parser = new RectangleParser(0,0,Float.parseFloat(rectW.getText().toString()),Float.parseFloat(rectH.getText().toString()),rectName.getText().toString());
+                theMaze.getRectangles().add(parser);
+                drawing.setRectangles(theMaze.getRectangles());
 
                 buttonsLayout.setVisibility(View.VISIBLE);
                 seekLayout.setVisibility(View.GONE);
@@ -128,16 +144,21 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawing.setMode(Global.RESIZE);
                 buttonColors(Global.RESIZE);
+                drawing.invalidate();
+                /*Intent intent = new Intent(context , ProfilActivity.class);
+                startActivity(intent);*/
             }
         });
         zoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
                 drawing.setMode(Global.ZOOM);
                 buttonColors(Global.ZOOM);
                 buttonsLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.VISIBLE);
-                addingLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);*/
+                save(drawing.save());
             }
         });
         cancel.setOnClickListener(new View.OnClickListener() {
@@ -207,8 +228,24 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
 
+        loadMaze();
+    }
+    private void save(Maze theMaze){
+        mazeBookRefDoc.set(theMaze);
+    }
+    private void loadMaze(){
+        mazeBookRefDoc.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        theMaze = documentSnapshot.toObject(Maze.class);
+                        Log.d(Global.TAG, "onSuccess: " + theMaze.toString());
+                        drawing.setTheMaze(theMaze);
+                        drawing.setRectangles(theMaze.getRectangles());
+                    }
+                });
+    }
     private void buttonColors(String mode){
 
         add.setBackgroundColor(Color.LTGRAY);
@@ -289,14 +326,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("Rectangle", (Serializable) rectangles);
+        outState.putSerializable("Rectangle", (Serializable) theMaze.getRectangles());
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        rectangles = (List<Rectangle>) savedInstanceState.getSerializable("Rectangle");
-        drawing.setRectangles(rectangles);
+        theMaze.setRectangles((List<RectangleParser>) savedInstanceState.getSerializable("Rectangle"));
+        drawing.setRectangles(theMaze.getRectangles());
     }
 
     public void dialogConfirmation(){
@@ -320,4 +357,8 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    @Override
+    public void onBackPressed() {
+
+    }
 }
