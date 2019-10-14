@@ -25,6 +25,10 @@ public class Rectangle implements Serializable {
     private Paint interetRectPaint;
     private String interet;
     private List<String> rectanglesId;
+    private float leftInteret;
+    private float topInteret;
+    private float rightInteret;
+    private float bottomInteret;
 
 
     /*public Rectangle(String name, int right, int bottom) {
@@ -85,9 +89,13 @@ public class Rectangle implements Serializable {
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(false);
         rectangle = new RectF(parser.getLeft(),parser.getTop(),parser.getRight(),parser.getBottom());
-        interetRectangle = new RectF(getRecInteretLeft(),getRecInteretTop(),getRecInteretRight(),getRecInteretBottom());
-
+        this.leftInteret = getRecInteretLeft();
+        this.topInteret = getRecInteretTop();
+        this.rightInteret = getRecInteretRight();
+        this.bottomInteret = getRecInteretBottom();
+        interetRectangle = new RectF(leftInteret,topInteret,rightInteret,bottomInteret);
         this.name = parser.getName();
+        this.interet =parser.getInteret();
         this.interet ="Cuisine";
 
         textPaint = new Paint();
@@ -124,6 +132,38 @@ public class Rectangle implements Serializable {
         linePaint.setAntiAlias(false);
     }
 
+    public float getLeftInteret() {
+        return leftInteret;
+    }
+
+    public void setLeftInteret(float leftInteret) {
+        this.leftInteret = leftInteret;
+    }
+
+    public float getTopInteret() {
+        return topInteret;
+    }
+
+    public void setTopInteret(float topInteret) {
+        this.topInteret = topInteret;
+    }
+
+    public float getRightInteret() {
+        return rightInteret;
+    }
+
+    public void setRightInteret(float rightInteret) {
+        this.rightInteret = rightInteret;
+    }
+
+    public float getBottomInteret() {
+        return bottomInteret;
+    }
+
+    public void setBottomInteret(float bottomInteret) {
+        this.bottomInteret = bottomInteret;
+    }
+
     public Paint getLinePaint() {
         return linePaint;
     }
@@ -146,16 +186,16 @@ public class Rectangle implements Serializable {
 
 
     public float getRecInteretLeft(){
-       return rectangle.left;
+       return interetRectangle.left;
     }
     public float getRecInteretTop(){
-        return rectangle.top;
+        return interetRectangle.top;
     }
     public float getRecInteretRight(){
-        return (rectangle.left+ ( rectangle.right/4 ))*2;
+        return (interetRectangle.left+ ( interetRectangle.right/4 ))*2;
     }
     public float getRecInteretBottom(){
-        return (rectangle.top + ( rectangle.bottom/6 ));
+        return (interetRectangle.top + ( interetRectangle.bottom/6 ));
     }
 
 
@@ -219,10 +259,10 @@ public class Rectangle implements Serializable {
         return  (rectangle.top + rectangle.bottom) / 2;
     }
     public float getInteretStartX() {
-        return  (interetRectangle.left + interetRectangle.right) / 2;
+        return  (leftInteret + rightInteret) / 2;
     }
     public float getInteretStartY() {
-        return  (interetRectangle.top + interetRectangle.bottom) / 2;
+        return  (topInteret + bottomInteret) / 2;
     }
 
     public Paint getTextPaint() {

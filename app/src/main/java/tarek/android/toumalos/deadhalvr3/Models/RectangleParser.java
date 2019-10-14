@@ -10,6 +10,10 @@ public class RectangleParser {
     private float top;
     private float right;
     private float bottom;
+    private float leftInteret;
+    private float topInteret;
+    private float rightInteret;
+    private float bottomInteret;
     private String name;
     private String interet;
     private List<String> rectanglesId;
@@ -18,7 +22,7 @@ public class RectangleParser {
         this.rectanglesId = new ArrayList<>();
     }
 
-    public RectangleParser(float left, float top, float right, float bottom, String name) {
+    public RectangleParser(float left, float top, float right,float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name) {
 
         UUID uuid = UUID.randomUUID();
         this.id = uuid.toString();
@@ -26,21 +30,62 @@ public class RectangleParser {
         this.top = top;
         this.right = right;
         this.bottom = bottom;
+        this.leftInteret = leftInteret;
+        this.topInteret = topInteret;
+        this.rightInteret = rightInteret;
+        this.bottomInteret = bottomInteret;
         this.name = name;
         this.interet = "";
         this.rectanglesId = new ArrayList<>();
     }
-    public RectangleParser(String id, float left, float top, float right, float bottom, String name,List<String> rectanglesId) {
+    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,List<String> rectanglesId) {
 
         this.id = id;
         this.left = left;
         this.top = top;
         this.right = right;
         this.bottom = bottom;
+        this.leftInteret = leftInteret;
+        this.topInteret = topInteret;
+        this.rightInteret = rightInteret;
+        this.bottomInteret = bottomInteret;
         this.name = name;
         this.interet = "";
         this.rectanglesId = rectanglesId;
     }
+
+    public float getLeftInteret() {
+        return leftInteret;
+    }
+
+    public void setLeftInteret(float leftInteret) {
+        this.leftInteret = leftInteret;
+    }
+
+    public float getTopInteret() {
+        return topInteret;
+    }
+
+    public void setTopInteret(float topInteret) {
+        this.topInteret = topInteret;
+    }
+
+    public float getRightInteret() {
+        return rightInteret;
+    }
+
+    public void setRightInteret(float rightInteret) {
+        this.rightInteret = rightInteret;
+    }
+
+    public float getBottomInteret() {
+        return bottomInteret;
+    }
+
+    public void setBottomInteret(float bottomInteret) {
+        this.bottomInteret = bottomInteret;
+    }
+
     public String getId() {
         return id;
     }

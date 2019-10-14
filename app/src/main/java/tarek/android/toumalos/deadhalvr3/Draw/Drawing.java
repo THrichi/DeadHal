@@ -56,7 +56,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        refresh();
+        //refresh();
         screenWidth = canvas.getWidth();
         screenHeight = canvas.getHeight();
         canvas.save();
@@ -74,7 +74,11 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             canvas.drawRect(rect.getRectangle(), rect.getPaint());
             canvas.drawText(rect.getName(), rect.getTextStartX(), rect.getTextStartY(), rect.getTextPaint());
             if (!rect.getInteret().equals("")) {
-                canvas.drawRect(rect.getInteretRectangle(), rect.getInteretRectPaint());
+                canvas.drawRect(rect.getRecInteretLeft(),
+                        rect.getRecInteretTop(),
+                        rect.getRecInteretRight(),
+                        rect.getRecInteretBottom(),
+                        rect.getInteretRectPaint());
                 canvas.drawText(rect.getInteret(), rect.getInteretStartX(), rect.getInteretStartY(), rect.getInteretPaint());
             }
             canvas.restore();
@@ -115,12 +119,14 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                 clickedY = (int) event.getY();
                 for (Rectangle rect : rectangles) {
                     rect.setColor(rect.getNormalColor());
+                    Toast.makeText(context,rect.getName(),Toast.LENGTH_SHORT).show();
                     if (rect.getRectangle().contains(event.getX(), event.getY())) {
                         selectedRect = rect;
                     }
                 }
 
                 if (selectedRect != null) {
+                    Toast.makeText(context,"selectedRect",Toast.LENGTH_SHORT).show();
                     rectangles.remove(selectedRect);
                     selectedRect.setColor(selectedRect.getSelectedColor());
                     selectedRect.getLinePaint().setColor(Color.RED);
@@ -276,7 +282,17 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     public Maze save() {
         List<RectangleParser> rectangleParserResult = new ArrayList<>();
         for (Rectangle rectangle : rectangles) {
-            rectangleParserResult.add(new RectangleParser(rectangle.getUID(),rectangle.getRectangle().left,rectangle.getRectangle().top,rectangle.getRectangle().right,rectangle.getRectangle().bottom,rectangle.getName(),rectangle.getRectanglesId()));
+            rectangleParserResult.add(new RectangleParser(rectangle.getUID(),
+                    rectangle.getRectangle().left,
+                    rectangle.getRectangle().top,
+                    rectangle.getRectangle().right,
+                    rectangle.getRectangle().bottom,
+                    rectangle.getInteretRectangle().left,
+                    rectangle.getInteretRectangle().top,
+                    rectangle.getInteretRectangle().right,
+                    rectangle.getInteretRectangle().bottom,
+                    rectangle.getName(),
+                    rectangle.getRectanglesId()));
         }
         theMaze.setRectangles(rectangleParserResult);
         return theMaze;

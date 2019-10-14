@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "194976018631",
+    "firebase_url": "https://deadhalvr3.firebaseio.com",
+    "project_id": "deadhalvr3",
+    "storage_bucket": "deadhalvr3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194976018631:android:fb657da162635468158ee2",
+        "android_client_info": {
+          "package_name": "tarek.android.toumalos.deadhalvr3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "194976018631-eqtl9pm9qfhqmfrubpbpol5gro992434.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tarek.android.toumalos.deadhalvr3",
+            "certificate_hash": "4bb191c352386259dfd321359f06a79c58c88aa0"
+          }
+        },
+        {
+          "client_id": "194976018631-malbv8lhacppgcvpq65vh8n8h3815h11.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI0AXfFlT0B8gzcdPRmNbb0KDiMTTU8Kw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "194976018631-malbv8lhacppgcvpq65vh8n8h3815h11.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -114,7 +114,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawing.setMode(Global.ADD);
-                RectangleParser parser = new RectangleParser(0,0,Float.parseFloat(rectW.getText().toString()),Float.parseFloat(rectH.getText().toString()),rectName.getText().toString());
+                RectangleParser parser = new RectangleParser(0,0,Float.parseFloat(rectW.getText().toString()),
+                        Float.parseFloat(rectH.getText().toString()),
+                        0,0,0,0,
+                        rectName.getText().toString());
                 theMaze.getRectangles().add(parser);
                 drawing.setRectangles(theMaze.getRectangles());
 
