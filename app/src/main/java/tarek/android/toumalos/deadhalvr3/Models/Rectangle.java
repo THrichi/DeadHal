@@ -89,14 +89,13 @@ public class Rectangle implements Serializable {
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(false);
         rectangle = new RectF(parser.getLeft(),parser.getTop(),parser.getRight(),parser.getBottom());
-        this.leftInteret = getRecInteretLeft();
-        this.topInteret = getRecInteretTop();
-        this.rightInteret = getRecInteretRight();
-        this.bottomInteret = getRecInteretBottom();
+        this.leftInteret = parser.getLeftInteret();
+        this.topInteret = parser.getTopInteret();
+        this.rightInteret = parser.getRightInteret();
+        this.bottomInteret = parser.getBottomInteret();
         interetRectangle = new RectF(leftInteret,topInteret,rightInteret,bottomInteret);
         this.name = parser.getName();
         this.interet =parser.getInteret();
-        this.interet ="Cuisine";
 
         textPaint = new Paint();
         textPaint.reset();
@@ -128,7 +127,7 @@ public class Rectangle implements Serializable {
         linePaint.reset();
         linePaint.setColor(Color.BLUE);
         linePaint.setStrokeWidth(15);
-        linePaint.setStyle(Paint.Style.FILL);
+        linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setAntiAlias(false);
     }
 
@@ -184,19 +183,6 @@ public class Rectangle implements Serializable {
         return UID;
     }
 
-
-    public float getRecInteretLeft(){
-       return interetRectangle.left;
-    }
-    public float getRecInteretTop(){
-        return interetRectangle.top;
-    }
-    public float getRecInteretRight(){
-        return (interetRectangle.left+ ( interetRectangle.right/4 ))*2;
-    }
-    public float getRecInteretBottom(){
-        return (interetRectangle.top + ( interetRectangle.bottom/6 ));
-    }
 
 
     public int getNormalColor() {
@@ -259,10 +245,10 @@ public class Rectangle implements Serializable {
         return  (rectangle.top + rectangle.bottom) / 2;
     }
     public float getInteretStartX() {
-        return  (leftInteret + rightInteret) / 2;
+        return  (interetRectangle.left + interetRectangle.right) / 2;
     }
     public float getInteretStartY() {
-        return  (topInteret + bottomInteret) / 2;
+        return  (interetRectangle.top + interetRectangle.bottom) / 2;
     }
 
     public Paint getTextPaint() {

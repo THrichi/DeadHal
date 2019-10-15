@@ -1,31 +1,47 @@
 package tarek.android.toumalos.deadhalvr3;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Draw.Drawing;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
@@ -35,23 +51,26 @@ import tarek.android.toumalos.deadhalvr3.Models.RectangleParser;
 public class MainActivity extends AppCompatActivity {
 
     private Drawing drawing;
-    private Button add, move, resize, remove,zoom,cancel,valideAdd,cancelAdd;
+    private CircleImageView add, move, resize, remove,backToMenu,cancel,valideAdd,cancelAdd,drow,options,save,back;
     private EditText rectW,rectH,rectName;
     private SeekBar seekZoom,seekY,seekX;
-    private LinearLayout buttonsLayout,seekLayout,addingLayout;
+    private LinearLayout buttonsLayout,seekLayout,addingLayout,buttonsPrincipaleLayout;
     private Maze theMaze;
     private int left = 0;
     private int top = 0;
     private Context context;
     private int oldYprogress=-1;
     private int oldXprogress=-1;
+    private String mazeName;
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
 
     //Firestore
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference mazebookRef = db.collection(user.getUid());
     private DocumentReference mazeBookRefDoc;
-    private String mazeName;
+    private StorageReference storageRef;
+    private DatabaseReference databaseRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,32 +81,69 @@ public class MainActivity extends AppCompatActivity {
         mazeBookRefDoc = mazebookRef.document(mazeName);
         drawing = (Drawing) findViewById(R.id.drawing);
 
+        storageRef = FirebaseStorage.getInstance().getReference("uploads");
+        databaseRef = FirebaseDatabase.getInstance().getReference("uploads");
         drawing.setTheMaze(theMaze);
-        add = (Button) findViewById(R.id.add);
-        move = (Button) findViewById(R.id.move);
-        resize = (Button) findViewById(R.id.resize);
-        remove = (Button) findViewById(R.id.remove);
-        zoom = (Button) findViewById(R.id.zoom);
-        cancel = (Button) findViewById(R.id.cancel);
-        cancelAdd = (Button) findViewById(R.id.cancelAdd);
-        valideAdd = (Button) findViewById(R.id.valideAdd);
+        add = (CircleImageView) findViewById(R.id.add);
+        move = (CircleImageView) findViewById(R.id.move);
+        resize = (CircleImageView) findViewById(R.id.resize);
+        remove = (CircleImageView) findViewById(R.id.remove);
+        backToMenu = (CircleImageView) findViewById(R.id.backToMenu);
+        drow = (CircleImageView) findViewById(R.id.Drow);
+        options = (CircleImageView) findViewById(R.id.Options);
+        back = (CircleImageView) findViewById(R.id.Back);
+        save = (CircleImageView) findViewById(R.id.Save);
+        cancel = (CircleImageView) findViewById(R.id.cancel);
+        cancelAdd = (CircleImageView) findViewById(R.id.cancelAdd);
+        valideAdd = (CircleImageView) findViewById(R.id.valideAdd);
         seekZoom = (SeekBar)  findViewById(R.id.SeekZoom);
         seekY = (SeekBar)  findViewById(R.id.SeekX);
         seekX = (SeekBar)  findViewById(R.id.SeekY);
         buttonsLayout = (LinearLayout) findViewById(R.id.buttonsLayout);
         seekLayout = (LinearLayout)  findViewById(R.id.SeekLayout);
         addingLayout = (LinearLayout)  findViewById(R.id.addingLayout);
-
+        buttonsPrincipaleLayout = (LinearLayout)  findViewById(R.id.buttonsPrincipaleLayout);
         rectH = (EditText)  findViewById(R.id.rectH);
         rectW = (EditText)  findViewById(R.id.rectW);
         rectName = (EditText)  findViewById(R.id.rectName);
 
-        buttonsLayout.setBackgroundColor(Color.LTGRAY);
         seekZoom.setMax(20);
         seekZoom.setProgress(10);
         seekY.setProgress(0);
         seekX.setProgress(0);
 
+        drow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buttonsLayout.setVisibility(View.VISIBLE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
+                seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.NOTHING);
+            }
+        });
+
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                save(drawing.save());
+            }
+        });
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this,ProfilActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        options.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 Rectangle r = new Rectangle("7887544", 100, 200, 300, 800, Color.RED);
                 rectangles.add(r);
                 drawing.setRectangles(rectangles);*/
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
                 buttonsLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.VISIBLE);
@@ -105,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
@@ -114,15 +172,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawing.setMode(Global.ADD);
-                RectangleParser parser = new RectangleParser(0,0,Float.parseFloat(rectW.getText().toString()),
+                RectangleParser parser = new RectangleParser(0,0,
+                        Float.parseFloat(rectW.getText().toString()),
                         Float.parseFloat(rectH.getText().toString()),
-                        0,0,0,0,
                         rectName.getText().toString());
                 theMaze.getRectangles().add(parser);
-                drawing.setRectangles(theMaze.getRectangles());
+                drawing.setTheMaze(theMaze);
 
                 buttonsLayout.setVisibility(View.VISIBLE);
                 seekLayout.setVisibility(View.GONE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
             }
@@ -139,7 +198,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawing.setMode(Global.REMOVE);
                 buttonColors(Global.REMOVE);
-                dialogConfirmation();
+                if(drawing.isSelectedItem()){
+                    dialogConfirmation();
+                }else {
+                    Toast.makeText(context,"Select the item you want to delete.",Toast.LENGTH_SHORT).show();
+                }
             }
         });
         resize.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);*/
             }
         });
-        zoom.setOnClickListener(new View.OnClickListener() {
+        backToMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 /*
@@ -161,7 +224,13 @@ public class MainActivity extends AppCompatActivity {
                 buttonsLayout.setVisibility(View.GONE);
                 seekLayout.setVisibility(View.VISIBLE);
                 addingLayout.setVisibility(View.GONE);*/
-                save(drawing.save());
+
+                buttonsLayout.setVisibility(View.GONE);
+                buttonsPrincipaleLayout.setVisibility(View.VISIBLE);
+                seekLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.NOTHING);
+                drawing.postInvalidate();
             }
         });
         cancel.setOnClickListener(new View.OnClickListener() {
@@ -169,7 +238,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
                 seekLayout.setVisibility(View.GONE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.NOTHING);
             }
         });
 
@@ -234,45 +305,71 @@ public class MainActivity extends AppCompatActivity {
 
         loadMaze();
     }
+    private String getFileExst(Uri uri){
+        ContentResolver cr = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cr.getType(uri));
+    }
     private void save(Maze theMaze){
+        drawing.setDrawingCacheEnabled(true);
+        Bitmap bitmap = Bitmap.createBitmap(drawing.getDrawingCache());
+        drawing.setDrawingCacheEnabled(false);
+        if(bitmap!=null){
+            StorageReference fileRef = storageRef.child(theMaze.getCode()+".jpg");
+            fileRef.putBytes(convertBitmap(bitmap))
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(context,e.getMessage(),Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
         mazeBookRefDoc.set(theMaze);
     }
+    private byte[] convertBitmap(Bitmap bmp){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        bmp.recycle();
+        return byteArray;
+    }
+    private void openScreenshot(File imageFile) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        Uri uri = Uri.fromFile(imageFile);
+        intent.setDataAndType(uri, "image/*");
+        startActivity(intent);
+    }
+
     private void loadMaze(){
         mazeBookRefDoc.get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         theMaze = documentSnapshot.toObject(Maze.class);
-                        Log.d(Global.TAG, "onSuccess: " + theMaze.toString());
                         drawing.setTheMaze(theMaze);
-                        drawing.setRectangles(theMaze.getRectangles());
                     }
                 });
     }
     private void buttonColors(String mode){
 
-        add.setBackgroundColor(Color.LTGRAY);
-        buttonsLayout.setBackgroundColor(Color.LTGRAY);
-        move.setBackgroundColor(Color.LTGRAY);
-        remove.setBackgroundColor(Color.LTGRAY);
-        resize.setBackgroundColor(Color.LTGRAY);
-        zoom.setBackgroundColor(Color.LTGRAY);
+        add.setImageResource(R.drawable.ic_add_box_black_24dp);
+        move.setImageResource(R.drawable.ic_open_with_black_24dp);
+        remove.setImageResource(R.drawable.ic_delete_forever_black_42dp);
+        resize.setImageResource(R.drawable.ic_settings_overscan_black_24dp);
         switch (mode)
         {
             case Global.ADD:
-                add.setBackgroundColor(Color.WHITE);
+                add.setImageResource(R.drawable.ic_add_box_black_24dp_red);
                 break;
             case Global.MOOVE:
-                move.setBackgroundColor(Color.WHITE);
+                move.setImageResource(R.drawable.ic_open_with_black_24dp_red);
                 break;
             case Global.REMOVE:
-                remove.setBackgroundColor(Color.WHITE);
+                remove.setImageResource(R.drawable.ic_delete_forever_black_24dp_red);
                 break;
             case Global.RESIZE:
-                resize.setBackgroundColor(Color.WHITE);
-                break;
-            case Global.ZOOM:
-                zoom.setBackgroundColor(Color.WHITE);
+                resize.setImageResource(R.drawable.ic_settings_overscan_black_24dp_red);
                 break;
         }
     }
@@ -329,14 +426,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("Rectangle", (Serializable) theMaze.getRectangles());
+        outState.putSerializable("Maze", (Serializable) theMaze);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        theMaze.setRectangles((List<RectangleParser>) savedInstanceState.getSerializable("Rectangle"));
-        drawing.setRectangles(theMaze.getRectangles());
+        theMaze = ((Maze) savedInstanceState.getSerializable("Maze"));
+        drawing.setTheMaze(theMaze);
     }
 
     public void dialogConfirmation(){

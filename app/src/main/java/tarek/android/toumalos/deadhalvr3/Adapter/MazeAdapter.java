@@ -20,13 +20,31 @@ import tarek.android.toumalos.deadhalvr3.R;
 
 public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
     private List<MazeItem> mazeItems;
-    private OnItemClickListener listener;
-    public interface OnItemClickListener{
+    private OnOpenClickListener listenerOpen;
+    private OnDetailsClickListener listenerDetails;
+    private OnRemoveClickListener listenerRemove;
+
+    public interface OnOpenClickListener{
         void onItemClick(int position);
     }
-    public void setOnItemClickListener(OnItemClickListener listener){
-        this.listener = listener;
+    public interface OnDetailsClickListener{
+        void onItemClick(int position);
     }
+    public interface OnRemoveClickListener{
+        void onItemClick(int position);
+    }
+    public void setOnOpenClickListener(OnOpenClickListener listenerOpen){
+        this.listenerOpen = listenerOpen;
+    }
+
+    public void setOnDetailsClickListener(OnDetailsClickListener listenerDetails){
+        this.listenerDetails = listenerDetails;
+    }
+
+    public void setOnRemoveClickListener(OnRemoveClickListener listenerRemove){
+        this.listenerRemove = listenerRemove;
+    }
+
     public MazeAdapter(List<MazeItem> mazeItems) {
         this.mazeItems = mazeItems;
     }
@@ -35,7 +53,7 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
     @Override
     public MazeHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.maze_item, parent, false);
-        return new MazeHolder(v,listener);
+        return new MazeHolder(v,listenerOpen,listenerDetails,listenerRemove);
     }
 
     @Override
@@ -61,7 +79,7 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
         CircleImageView details;
         CircleImageView delete;
 
-        public MazeHolder(@NonNull View itemView, final OnItemClickListener listener) {
+        public MazeHolder(@NonNull View itemView, final OnOpenClickListener listenerOpen, final OnDetailsClickListener listenerDetails, final OnRemoveClickListener listenerRemove) {
             super(itemView);
             mazeName = itemView.findViewById(R.id.mazeName);
             open = itemView.findViewById(R.id.openMaze);
@@ -71,15 +89,34 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (listener != null){
+                    if (listenerOpen != null){
                         int position = getAdapterPosition();
                         if(position != RecyclerView.NO_POSITION){
-                            listener.onItemClick(position);
+                            listenerOpen.onItemClick(position);
                         }
                     }
                 }
             });
-
+            delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {if (listenerRemove != null){
+                    int position = getAdapterPosition();
+                    if(position != RecyclerView.NO_POSITION){
+                        listenerRemove.onItemClick(position);
+                    }
+                }
+                }
+            });
+            details.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {if (listenerDetails != null){
+                    int position = getAdapterPosition();
+                    if(position != RecyclerView.NO_POSITION){
+                        listenerDetails.onItemClick(position);
+                    }
+                }
+                }
+            });
         }
     }
 }

@@ -14,44 +14,82 @@
         android:layout_weight="1" />
 
     <LinearLayout
-        android:id="@+id/buttonsLayout"
+        android:id="@+id/buttonsPrincipaleLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:visibility="visible"
         android:layout_weight="0">
 
-        <Button
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Drow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_edit_black_24dp"
+            />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Options"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_settings_applications_black_24dp"
+            />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Save"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_save_black_24dp"
+            />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_arrow_back_black_24dp"
+            />
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_weight="0">
+
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/add"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="add"
+            android:src="@drawable/ic_add_box_black_24dp"
             />
-        <Button
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/move"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="move" />
-        <Button
+            android:src="@drawable/ic_open_with_black_24dp"/>
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/resize"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="resize" />
-        <Button
+            android:src="@drawable/ic_settings_overscan_black_24dp" />
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/remove"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="remove" />
-        <Button
-            android:id="@+id/zoom"
+            android:src="@drawable/ic_delete_forever_black_42dp"/>
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/backToMenu"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="zoom" />
+            android:src="@drawable/ic_menu_black_24dp" />
 
     </LinearLayout>
 
@@ -61,6 +99,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:text="Y"
+            android:padding="5dp"
+            />
         <SeekBar
             android:id="@+id/SeekZoom"
             android:layout_width="match_parent"
@@ -68,6 +114,14 @@
             android:layout_weight="1"
             android:outlineAmbientShadowColor="#03A9F4"
             android:outlineSpotShadowColor="#03A9F4"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:text="X"
+            android:padding="5dp"
             />
         <SeekBar
             android:id="@+id/SeekY"
@@ -77,6 +131,14 @@
             android:outlineAmbientShadowColor="#03A9F4"
             android:outlineSpotShadowColor="#03A9F4"
             />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:text="Zoom"
+            android:padding="5dp"
+            />
         <SeekBar
             android:id="@+id/SeekX"
             android:layout_width="match_parent"
@@ -85,12 +147,13 @@
             android:outlineAmbientShadowColor="#03A9F4"
             android:outlineSpotShadowColor="#03A9F4"
             />
-        <Button
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:text="x" />
+            android:src="@drawable/ic_cancel_black_24dp"
+            />
     </LinearLayout>
 
     <LinearLayout
@@ -130,18 +193,18 @@
             android:text="Toto"
             android:hint="Name" />
 
-        <Button
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/valideAdd"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="Add" />
-        <Button
+            android:src="@drawable/ic_add_circle_black_24dp"/>
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/cancelAdd"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="x" />
+            android:src="@drawable/ic_cancel_black_24dp"/>
 
     </LinearLayout>
 </LinearLayout>

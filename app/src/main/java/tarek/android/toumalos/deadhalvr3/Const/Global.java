@@ -9,6 +9,7 @@ public class Global {
     public final static String RESIZE ="RESIZE";
     public final static String TAG ="Flaki";
     public final static String RELATION ="RELATION";
+    public final static String STREAMING ="STREAMING";
     public final static String NOTHING ="";
     public final static int MY_REQUEST_CODE = 7521;
 

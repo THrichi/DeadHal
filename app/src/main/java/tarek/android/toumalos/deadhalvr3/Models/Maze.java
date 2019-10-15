@@ -2,11 +2,12 @@ package tarek.android.toumalos.deadhalvr3.Models;
 
 import androidx.annotation.NonNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Maze {
+public class Maze implements Serializable {
     private String code;
     private String name;
     private String userId;

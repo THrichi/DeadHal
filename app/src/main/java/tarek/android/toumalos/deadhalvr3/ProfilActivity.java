@@ -2,17 +2,23 @@ package tarek.android.toumalos.deadhalvr3;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +32,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -35,6 +43,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -43,7 +53,7 @@ import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import tarek.android.toumalos.deadhalvr3.Adapter.MazeAdapter;
-import tarek.android.toumalos.deadhalvr3.Models.Line;
+import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
 import tarek.android.toumalos.deadhalvr3.Models.MazeItem;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
@@ -66,7 +76,13 @@ public class ProfilActivity extends AppCompatActivity {
     private LinearLayout addLayout;
     private LinearLayout MyMazeLayout;
     private LinearLayout followMazeLayout;
+    private CircleImageView detailsCancel ;
+    private TextView detailsCode ;
+    private TextView detailsName ;
+    private ImageView detailsScreen ;
 
+    //dialog
+    private Dialog detailsDialog;
     //Firestore
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference mazebookRef = db.collection(user.getUid());
@@ -76,6 +92,8 @@ public class ProfilActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager layoutManager;
     private List<MazeItem> mazeItems;
     private List<Maze> mazes;
+    private StorageReference storageRef;
+    private DatabaseReference databaseRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +102,9 @@ public class ProfilActivity extends AppCompatActivity {
         context = this;
         mazeItems = new ArrayList<>();
         mazes = new ArrayList<>();
-
+        storageRef = FirebaseStorage.getInstance().getReference("uploads");
+        databaseRef = FirebaseDatabase.getInstance().getReference("uploads");
+        initDialog();
         profilImage = (CircleImageView) findViewById(R.id.profilImage);
         logOut = (CircleImageView) findViewById(R.id.logOut);
         userName = (TextView) findViewById(R.id.userName);
@@ -166,9 +186,50 @@ public class ProfilActivity extends AppCompatActivity {
                 addMaze();
             }
         });
+
+        detailsCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                detailsDialog.dismiss();
+            }
+        });
+
         loadMazes();
     }
 
+    private void initDialog(){
+        detailsDialog = new Dialog(context);
+        detailsDialog.setContentView(R.layout.activity_details_dialog);
+        detailsDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        detailsCancel = (CircleImageView) detailsDialog.findViewById(R.id.detailsCancel);
+        detailsCode = (TextView) detailsDialog.findViewById(R.id.detailsCode);
+        detailsName = (TextView) detailsDialog.findViewById(R.id.detailsName);
+        detailsScreen = (ImageView) detailsDialog.findViewById(R.id.detailsScreen);
+    }
+    private void initDetails(String name){
+        Maze maze = getMaze(name);
+        detailsCode.setText("code de partage : " + maze.getCode());
+        detailsName.setText("Nom : " + maze.getName());
+        StorageReference reference = storageRef.child(maze.getCode()+".jpg");
+        reference.getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        Picasso.get().load(uri.toString()).into(detailsScreen);
+                    }
+                });
+    }
+    private void downloadFiles(){
+
+    }
+    private Maze getMaze(String name){
+        for (Maze maze : mazes) {
+            if (maze.getName().equals(name))
+                return maze;
+        }
+        return null;
+    }
     private String generateCode(){
         UUID uuid = UUID.randomUUID();
         String code = uuid.toString();
@@ -183,6 +244,7 @@ public class ProfilActivity extends AppCompatActivity {
         startActivity(intent);
     }
     private void loadMazes(){
+        mazes = new ArrayList<>();
         mazebookRef.get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -190,8 +252,8 @@ public class ProfilActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot qs : queryDocumentSnapshots){
                             Maze item = qs.toObject(Maze.class);
                             mazes.add(item);
-                            setUpRecycleView();
                         }
+                        setUpRecycleView();
                     }
                 });
     }
@@ -199,10 +261,6 @@ public class ProfilActivity extends AppCompatActivity {
         for (Maze maze : mazes) {
             mazeItems.add(new MazeItem(maze.getName(),R.drawable.ic_open_in_new_black_24dp,R.drawable.ic_info_black_24dp,R.drawable.ic_delete_forever_black_24dp));
         }
-        /*mazeItems.add(new MazeItem("First Maze",R.drawable.ic_open_in_new_black_24dp,R.drawable.ic_info_black_24dp,R.drawable.ic_delete_forever_black_24dp));
-        mazeItems.add(new MazeItem("Second Maze",R.drawable.ic_open_in_new_black_24dp,R.drawable.ic_info_black_24dp,R.drawable.ic_delete_forever_black_24dp));
-        mazeItems.add(new MazeItem("Third Maze",R.drawable.ic_open_in_new_black_24dp,R.drawable.ic_info_black_24dp,R.drawable.ic_delete_forever_black_24dp));
-        mazeItems.add(new MazeItem("Fourth Maze",R.drawable.ic_open_in_new_black_24dp,R.drawable.ic_info_black_24dp,R.drawable.ic_delete_forever_black_24dp));*/
         recyclerView = findViewById(R.id.myListMazes);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
@@ -210,10 +268,27 @@ public class ProfilActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mazeAdapter);
 
-        mazeAdapter.setOnItemClickListener(new MazeAdapter.OnItemClickListener() {
+        mazeAdapter.setOnOpenClickListener(new MazeAdapter.OnOpenClickListener() {
             @Override
             public void onItemClick(int position) {
                 openMaze(mazeItems.get(position).getName());
+            }
+        });
+        mazeAdapter.setOnDetailsClickListener(new MazeAdapter.OnDetailsClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                detailsDialog.show();
+                initDetails(mazeItems.get(position).getName());
+            }
+        });
+
+        mazeAdapter.setOnRemoveClickListener(new MazeAdapter.OnRemoveClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                //dialogConfirmation(mazeItems.get(position).getName(),position);
+                Intent intent = new Intent(context,StreamingActivity.class);
+                intent.putExtra("theMaze",getMaze(mazeItems.get(position).getName()));
+                startActivity(intent);
             }
         });
     }
@@ -239,7 +314,29 @@ public class ProfilActivity extends AppCompatActivity {
             }
         });*/
     }
+    public void dialogConfirmation(final String mazeName,final int position){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+        builder.setMessage("Confirm removing selected object ?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mazebookRef.document(mazeName).delete();
+                        mazeItems.remove(position);
+                        mazeAdapter.notifyItemRemoved(position);
+                        mazeAdapter.notifyItemRangeChanged(position, mazeItems.size());
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
     @Override
     protected void onStop() {
         super.onStop();

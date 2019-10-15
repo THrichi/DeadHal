@@ -1,10 +1,11 @@
 package tarek.android.toumalos.deadhalvr3.Models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class RectangleParser {
+public class RectangleParser implements Serializable {
     private String id;
     private float left;
     private float top;
@@ -22,7 +23,7 @@ public class RectangleParser {
         this.rectanglesId = new ArrayList<>();
     }
 
-    public RectangleParser(float left, float top, float right,float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name) {
+    public RectangleParser(float left, float top, float right,float bottom, String name) {
 
         UUID uuid = UUID.randomUUID();
         this.id = uuid.toString();
@@ -30,15 +31,15 @@ public class RectangleParser {
         this.top = top;
         this.right = right;
         this.bottom = bottom;
-        this.leftInteret = leftInteret;
-        this.topInteret = topInteret;
-        this.rightInteret = rightInteret;
-        this.bottomInteret = bottomInteret;
+        this.leftInteret = getRecInteretLeft();
+        this.topInteret = getRecInteretTop();
+        this.rightInteret = getRecInteretRight();
+        this.bottomInteret = getRecInteretBottom();
         this.name = name;
         this.interet = "";
         this.rectanglesId = new ArrayList<>();
     }
-    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,List<String> rectanglesId) {
+    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,String interet,List<String> rectanglesId) {
 
         this.id = id;
         this.left = left;
@@ -50,7 +51,7 @@ public class RectangleParser {
         this.rightInteret = rightInteret;
         this.bottomInteret = bottomInteret;
         this.name = name;
-        this.interet = "";
+        this.interet = interet;
         this.rectanglesId = rectanglesId;
     }
 
@@ -148,5 +149,18 @@ public class RectangleParser {
 
     public void setRectanglesId(List<String> rectanglesId) {
         this.rectanglesId = rectanglesId;
+    }
+
+    public float getRecInteretLeft(){
+        return left;
+    }
+    public float getRecInteretTop(){
+        return top;
+    }
+    public float getRecInteretRight(){
+        return (left+ ( right/4 ))*2;
+    }
+    public float getRecInteretBottom(){
+        return (top + ( bottom/6 ));
     }
 }
