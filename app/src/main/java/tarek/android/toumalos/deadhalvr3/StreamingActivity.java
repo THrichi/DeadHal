@@ -30,7 +30,6 @@ public class StreamingActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference mazebookRef;
     private DocumentReference mazeBookRefDoc;
-    private ScaleGestureDetector scaleGestureDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +40,7 @@ public class StreamingActivity extends AppCompatActivity {
         mazebookRef = db.collection(theMaze.getUserId());
         mazeBookRefDoc = mazebookRef.document(theMaze.getName());
         drawing.setTheMaze(theMaze);
-        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
+        drawing.setMode(Global.STREAMING);
     }
 
     @Override
@@ -56,21 +55,4 @@ public class StreamingActivity extends AppCompatActivity {
         });
     }
 
-    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            Log.d(Global.TAG, "onScale: " + scale);
-            scale = scale * detector.getScaleFactor();
-            Log.d(Global.TAG, "onScale: " + scale);
-            Log.d(Global.TAG, "detector.getScaleFactor(): " + detector.getScaleFactor());
-            drawing.setScale(scale);
-            return true;
-        }
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        scaleGestureDetector.onTouchEvent(event);
-        return true;
-    }
 }

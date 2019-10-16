@@ -17,73 +17,97 @@
         android:id="@+id/buttonsPrincipaleLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="0"
         android:orientation="horizontal"
-        android:visibility="visible"
-        android:layout_weight="0">
+        android:visibility="visible">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/Drow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_edit_black_24dp"
-            />
+            android:src="@drawable/ic_edit_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/Options"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_settings_applications_black_24dp"
-            />
+            android:src="@drawable/ic_settings_applications_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/Save"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_save_black_24dp"
-            />
+            android:src="@drawable/ic_save_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/Back"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_arrow_back_black_24dp"
-            />
+            android:src="@drawable/ic_arrow_back_black_24dp" />
 
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/buttonsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="0"
         android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_weight="0">
+        android:visibility="gone">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/add"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_add_box_black_24dp"
-            />
+            android:src="@drawable/ic_add_box_black_24dp" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/selected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_select_app_black_24dp" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/relation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_shuffle_black_24dp" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/rotate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_crop_rotate_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/move"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_open_with_black_24dp"/>
+            android:src="@drawable/ic_open_with_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/resize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:src="@drawable/ic_settings_overscan_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/remove"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_delete_forever_black_42dp"/>
+            android:src="@drawable/ic_delete_forever_black_42dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/backToMenu"
             android:layout_width="match_parent"
@@ -99,112 +123,201 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:visibility="gone">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textAlignment="center"
-            android:text="Y"
             android:padding="5dp"
-            />
+            android:text="Y"
+            android:textAlignment="center" />
+
         <SeekBar
             android:id="@+id/SeekZoom"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4"
-            />
+            android:outlineSpotShadowColor="#03A9F4" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textAlignment="center"
-            android:text="X"
             android:padding="5dp"
-            />
+            android:text="X"
+            android:textAlignment="center" />
+
         <SeekBar
             android:id="@+id/SeekY"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4"
-            />
+            android:outlineSpotShadowColor="#03A9F4" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textAlignment="center"
-            android:text="Zoom"
             android:padding="5dp"
-            />
+            android:text="Zoom"
+            android:textAlignment="center" />
+
         <SeekBar
             android:id="@+id/SeekX"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4"
-            />
+            android:outlineSpotShadowColor="#03A9F4" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:src="@drawable/ic_cancel_black_24dp"
-            />
+            android:src="@drawable/ic_cancel_black_24dp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/addingLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="0"
         android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_weight="0">
+        android:visibility="gone">
 
         <EditText
             android:id="@+id/rectW"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:textAlignment="center"
+            android:hint="Width"
             android:inputType="number"
             android:text="400"
-            android:hint="Width"
-            />
+            android:textAlignment="center" />
+
         <EditText
             android:id="@+id/rectH"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:textAlignment="center"
+            android:hint="Height"
             android:inputType="number"
             android:text="400"
-            android:hint="Height" />
+            android:textAlignment="center" />
+
         <EditText
             android:id="@+id/rectName"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:textAlignment="center"
+            android:hint="Name"
             android:inputType="text"
             android:text="Toto"
-            android:hint="Name" />
+            android:textAlignment="center" />
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/valideAdd"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_add_circle_black_24dp"/>
+            android:src="@drawable/ic_add_circle_black_24dp" />
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/cancelAdd"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_cancel_black_24dp"/>
+            android:src="@drawable/ic_cancel_black_24dp" />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/RotationLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <SeekBar
+            android:id="@+id/SeekRotation"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:outlineAmbientShadowColor="#03A9F4"
+            android:outlineSpotShadowColor="#03A9F4" />
+
+        <TextView
+            android:id="@+id/rotationEditText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:fontFamily="monospace"
+            android:text="360°"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="22dp" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/cancelRotate"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:src="@drawable/ic_menu_black_24dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/NametLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/changeNameEdit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="monospace"
+            android:textSize="22dp"
+            android:hint="Nom"
+            android:maxLength="10"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:layout_weight="1" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/changeName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="7"
+            android:src="@drawable/ic_check_circle_black_24dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/InteretLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/changeInteretEdit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="monospace"
+            android:textSize="22dp"
+            android:hint="Interet"
+            android:maxLength="10"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:layout_weight="1" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/changeInteret"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="7"
+            android:src="@drawable/ic_check_circle_black_24dp" />
     </LinearLayout>
 </LinearLayout>

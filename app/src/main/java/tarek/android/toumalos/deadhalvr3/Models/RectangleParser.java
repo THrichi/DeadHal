@@ -17,7 +17,7 @@ public class RectangleParser implements Serializable {
     private float bottomInteret;
     private String name;
     private String interet;
-    private List<String> rectanglesId;
+    private List<Line> rectanglesId;
 
     public RectangleParser() {
         this.rectanglesId = new ArrayList<>();
@@ -39,7 +39,7 @@ public class RectangleParser implements Serializable {
         this.interet = "";
         this.rectanglesId = new ArrayList<>();
     }
-    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,String interet,List<String> rectanglesId) {
+    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,String interet,List<Line> rectanglesId) {
 
         this.id = id;
         this.left = left;
@@ -143,14 +143,16 @@ public class RectangleParser implements Serializable {
         this.interet = interet;
     }
 
-    public List<String> getRectanglesId() {
+    public List<Line> getRectanglesId() {
         return rectanglesId;
     }
 
-    public void setRectanglesId(List<String> rectanglesId) {
+    public void setRectanglesId(List<Line> rectanglesId) {
         this.rectanglesId = rectanglesId;
     }
-
+    public void add(Line goToId){
+        rectanglesId.add(goToId);
+    }
     public float getRecInteretLeft(){
         return left;
     }

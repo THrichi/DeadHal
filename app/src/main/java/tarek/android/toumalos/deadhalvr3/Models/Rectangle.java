@@ -2,13 +2,20 @@ package tarek.android.toumalos.deadhalvr3.Models;
 
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.RectF;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Rectangle implements Serializable {
+    public static final String LEFT = "Left";
+    public static final String RIGHT = "Right";
+    public static final String TOP = "Top";
+    public static final String BOTTOM = "Bottom";
+
     private String UID;
     private Paint paint;
     private Paint linePaint;
@@ -18,13 +25,17 @@ public class Rectangle implements Serializable {
     private int selectedColor;
     private float rotation;
     private String name;
+    private Point circleLeft;
+    private Point circleRight;
+    private Point circleTop;
+    private Point circleBottom;
     //private int textSize;
     //private int textColor;
     private Paint textPaint;
     private Paint interetPaint;
     private Paint interetRectPaint;
     private String interet;
-    private List<String> rectanglesId;
+    private List<Line> rectanglesId;
     private float leftInteret;
     private float topInteret;
     private float rightInteret;
@@ -131,6 +142,26 @@ public class Rectangle implements Serializable {
         linePaint.setAntiAlias(false);
     }
 
+    public Point getCircleLeft() {
+        circleLeft = new Point((int)rectangle.left,(int)(rectangle.top + rectangle.bottom) / 2);
+        return circleLeft;
+    }
+
+    public Point getCircleRight() {
+        circleRight = new Point((int)rectangle.right,(int)(rectangle.top + rectangle.bottom) / 2);
+        return circleRight;
+    }
+
+    public Point getCircleTop() {
+        circleTop = new Point((int)(rectangle.left + rectangle.right) / 2 ,(int)rectangle.top);
+        return circleTop;
+    }
+
+    public Point getCircleBottom() {
+        circleBottom = new Point((int)(rectangle.left + rectangle.right) / 2 ,(int)rectangle.bottom);
+        return circleBottom;
+    }
+
     public float getLeftInteret() {
         return leftInteret;
     }
@@ -171,12 +202,12 @@ public class Rectangle implements Serializable {
         this.linePaint = linePaint;
     }
 
-    public List<String> getRectanglesId() {
+    public List<Line> getRectanglesId() {
         return rectanglesId;
     }
 
-    public void setRectanglesId(List<String> rectanglesId) {
-        this.rectanglesId = rectanglesId;
+    public void setRectanglesId(List<Line> rectanglesId) {
+        this.rectanglesId = new ArrayList<>(rectanglesId);
     }
 
     public String getUID() {
@@ -287,6 +318,9 @@ public class Rectangle implements Serializable {
         return UID;
     }
 
+    public void add(Line line){
+        rectanglesId.add(line);
+    }
     @Override
     public String toString() {
         String s;

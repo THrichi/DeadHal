@@ -56,10 +56,10 @@ public class Maze implements Serializable {
         this.rectangles = rectangles;
     }
 
-    public void addLine(String idRect1,String idRect2) {
+    public void addLine(String idRect,Line goToId) {
         for (RectangleParser parser : rectangles) {
-            if(parser.getId().equals(idRect1)){
-                parser.getRectanglesId().add(idRect2);
+            if(parser.getId().equals(idRect)){
+                parser.add(goToId);
             }
         }
     }
