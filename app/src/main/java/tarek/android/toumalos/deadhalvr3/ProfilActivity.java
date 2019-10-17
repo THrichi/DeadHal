@@ -299,7 +299,6 @@ public class ProfilActivity extends AppCompatActivity {
                     followCodeEditText.setText("");
                     mazeFollowItems.add(new MazeItem(mazeSeached.getName(), R.drawable.ic_visibility_black_24dp, R.drawable.ic_info_black_24dp, R.drawable.ic_delete_forever_black_24dp));
                     mazeAdapterFollow.notifyItemInserted(mazeFollowItems.size());
-                    setUpFollowRecycleView();
                 }
             });
             detailsFollowMaze.setOnClickListener(new View.OnClickListener() {
