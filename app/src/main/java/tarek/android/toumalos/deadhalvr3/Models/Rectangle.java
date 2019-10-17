@@ -98,7 +98,7 @@ public class Rectangle implements Serializable {
         paint.setColor(normalColor);
         paint.setStrokeWidth(7);
         paint.setStyle(Paint.Style.FILL);
-        paint.setAntiAlias(false);
+        paint.setAntiAlias(true);
         rectangle = new RectF(parser.getLeft(),parser.getTop(),parser.getRight(),parser.getBottom());
         this.leftInteret = parser.getLeftInteret();
         this.topInteret = parser.getTopInteret();
@@ -115,7 +115,7 @@ public class Rectangle implements Serializable {
         textPaint.setStrokeWidth(10);
         textPaint.setTextSize(62);
         textPaint.setStyle(Paint.Style.FILL);
-        textPaint.setAntiAlias(false);
+        textPaint.setAntiAlias(true);
 
         interetPaint = new Paint();
         interetPaint.reset();
@@ -124,7 +124,7 @@ public class Rectangle implements Serializable {
         interetPaint.setStrokeWidth(5);
         interetPaint.setTextSize(62/2);
         interetPaint.setStyle(Paint.Style.FILL);
-        interetPaint.setAntiAlias(false);
+        interetPaint.setAntiAlias(true);
 
 
         interetRectPaint = new Paint();
@@ -132,14 +132,14 @@ public class Rectangle implements Serializable {
         interetRectPaint.setColor(Color.rgb(119,119,0));
         interetRectPaint.setStrokeWidth(5);
         interetRectPaint.setStyle(Paint.Style.FILL);
-        interetRectPaint.setAntiAlias(false);
+        interetRectPaint.setAntiAlias(true);
 
         linePaint = new Paint();
         linePaint.reset();
-        linePaint.setColor(Color.BLUE);
-        linePaint.setStrokeWidth(15);
+        linePaint.setColor(Color.BLACK);
+        linePaint.setStrokeWidth(10);
         linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setAntiAlias(false);
+        linePaint.setAntiAlias(true);
     }
 
     public Point getCircleLeft() {
@@ -182,6 +182,32 @@ public class Rectangle implements Serializable {
         return rightInteret;
     }
 
+    public float getRecInteretLeft(){
+        return rectangle.left;
+    }
+    public float getRecInteretTop(){
+        return rectangle.top;
+    }
+    public float getRecInteretRight(){
+        return (rectangle.left+ ( rectangle.right/4 ))*2;
+    }
+    public float getRecInteretBottom(){
+        return (rectangle.top + ( rectangle.bottom/6 ));
+    }
+    public void remove(String UID){
+        Line line = getLine(UID);
+        if(line != null){
+            rectanglesId.remove(line);
+        }
+    }
+    private Line getLine(String UID){
+        for (Line l: rectanglesId) {
+            if(l.getGoToId().equals(UID)){
+                return l;
+            }
+        }
+        return null;
+    }
     public void setRightInteret(float rightInteret) {
         this.rightInteret = rightInteret;
     }

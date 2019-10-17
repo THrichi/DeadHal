@@ -205,15 +205,19 @@ public class MainActivity extends AppCompatActivity {
         rotate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                drawing.setMode(Global.ROTATE);
-                buttonColors(Global.ROTATE);
+                if (drawing.getSelectedRectangle() != null) {
+                    drawing.setMode(Global.ROTATE);
+                    buttonColors(Global.ROTATE);
 
-                buttonsLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.VISIBLE);
-                seekLayout.setVisibility(View.GONE);
-                buttonsPrincipaleLayout.setVisibility(View.GONE);
-                addingLayout.setVisibility(View.GONE);
-                drawing.setMode(Global.NOTHING);
+                    buttonsLayout.setVisibility(View.GONE);
+                    RotationLayout.setVisibility(View.VISIBLE);
+                    seekLayout.setVisibility(View.GONE);
+                    buttonsPrincipaleLayout.setVisibility(View.GONE);
+                    addingLayout.setVisibility(View.GONE);
+                    drawing.setMode(Global.NOTHING);
+                } else {
+                    Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
+                }
 
             }
         });
@@ -408,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 rotationEditText.setText(progress + "°");
+                drawing.rotate(drawing.getSelectedRectangle(), progress);
             }
 
             @Override
@@ -620,11 +625,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.removeLine:
                 if (drawing.getMenuItemSelected() != null) {
-                    if(drawing.getMenuItemSelected().getRectanglesId().size()>0){
+                    if (drawing.getMenuItemSelected().getRectanglesId().size() > 0) {
                         linesDialog.show();
                         setUpRecycleView(drawing.getMenuItemSelected());
-                    }else{
-                        Toast.makeText(context,"Aucun lien n'est liée avec cet item",Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "Aucun lien n'est liée avec cet item", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
@@ -634,17 +639,26 @@ public class MainActivity extends AppCompatActivity {
                 return super.onContextItemSelected(item);
         }
     }
-    private void initDialog(){
+
+    private void initDialog() {
         linesDialog = new Dialog(context);
         linesDialog.setContentView(R.layout.activity_line_dialog);
         linesDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         lineRecycleView = (RecyclerView) linesDialog.findViewById(R.id.lineRecycleView);
     }
-    private void setUpRecycleView(Rectangle rectangle) {
+
+    private void setUpRecycleView(final Rectangle rectangle) {
         lineItems = new ArrayList<>();
         for (Line line : rectangle.getRectanglesId()) {
-            lineItems.add(new LineItem("--> "+drawing.getRectangleName(line.getGoToId()),R.drawable.twodirections));
+            Rectangle goToRect = drawing.getRectangleById(line.getGoToId());
+            if(goToRect!=null){
+                if(checkBidirectionnel(rectangle,line.getGoToId())){
+                    lineItems.add(new LineItem("--> " + goToRect.getName(),goToRect.getUID(), R.drawable.twodirections));
+                }else {
+                    lineItems.add(new LineItem("--> " + goToRect.getName(),goToRect.getUID(), R.drawable.onedirection));
+                }
+            }
         }
         lineRecycleView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
@@ -655,9 +669,22 @@ public class MainActivity extends AppCompatActivity {
         lineAdapter.setOnRemoveClickListener(new LineAdapter.OnRemoveClickListener() {
             @Override
             public void onItemClick(int position) {
-                Toast.makeText(context,"Deleted "+position,Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,rectangle.getName() +" ,id:"+ lineItems.get(position).getUid(),Toast.LENGTH_SHORT).show();
+                drawing.deleteLine(rectangle,lineItems.get(position).getUid());
+                linesDialog.dismiss();
             }
         });
+    }
+    private boolean checkBidirectionnel(Rectangle rId,String UID){
+        Rectangle rectangle = drawing.getRectangleById(UID);
+        if(rectangle != null){
+            for (Line line : rectangle.getRectanglesId()) {
+                if(line.getGoToId().equals(rId.getUID())){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     @Override
     public void onBackPressed() {
