@@ -378,7 +378,13 @@ public class ProfilActivity extends AppCompatActivity {
         }
         return null;
     }
-
+    private Maze getFollowMaze(String name) {
+        for (Maze maze : followListMaze) {
+            if (maze.getName().equals(name))
+                return maze;
+        }
+        return null;
+    }
     private String generateCode() {
         UUID uuid = UUID.randomUUID();
         String code = uuid.toString();
@@ -428,7 +434,7 @@ public class ProfilActivity extends AppCompatActivity {
             @Override
             public void onItemClick(int position) {
                 Intent intent = new Intent(context, StreamingActivity.class);
-                intent.putExtra("theMaze", getMaze(mazeFollowItems.get(position).getName()));
+                intent.putExtra("theMaze", getFollowMaze(mazeFollowItems.get(position).getName()));
                 startActivity(intent);
             }
         });

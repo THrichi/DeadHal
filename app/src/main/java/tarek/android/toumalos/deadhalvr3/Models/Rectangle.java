@@ -87,26 +87,26 @@ public class Rectangle implements Serializable {
         interetRectPaint.setStyle(Paint.Style.FILL);
         interetRectPaint.setAntiAlias(false);
     }*/
-    public Rectangle (RectangleParser parser){
+    public Rectangle(RectangleParser parser) {
 
         this.UID = parser.getId();
         this.rectanglesId = parser.getRectanglesId();
-        this.normalColor = Color.rgb(128,128,192);
-        this.selectedColor = Color.rgb(119,187,255);
+        this.normalColor = Color.rgb(128, 128, 192);
+        this.selectedColor = Color.rgb(119, 187, 255);
         paint = new Paint();
         paint.reset();
         paint.setColor(normalColor);
         paint.setStrokeWidth(7);
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(true);
-        rectangle = new RectF(parser.getLeft(),parser.getTop(),parser.getRight(),parser.getBottom());
+        rectangle = new RectF(parser.getLeft(), parser.getTop(), parser.getRight(), parser.getBottom());
         this.leftInteret = parser.getLeftInteret();
         this.topInteret = parser.getTopInteret();
         this.rightInteret = parser.getRightInteret();
         this.bottomInteret = parser.getBottomInteret();
-        interetRectangle = new RectF(leftInteret,topInteret,rightInteret,bottomInteret);
+        interetRectangle = new RectF(leftInteret, topInteret, rightInteret, bottomInteret);
         this.name = parser.getName();
-        this.interet =parser.getInteret();
+        this.interet = parser.getInteret();
 
         textPaint = new Paint();
         textPaint.reset();
@@ -122,14 +122,14 @@ public class Rectangle implements Serializable {
         interetPaint.setColor(Color.BLACK);
         interetPaint.setTextAlign(Paint.Align.CENTER);
         interetPaint.setStrokeWidth(5);
-        interetPaint.setTextSize(62/2);
+        interetPaint.setTextSize(62 / 2);
         interetPaint.setStyle(Paint.Style.FILL);
         interetPaint.setAntiAlias(true);
 
 
         interetRectPaint = new Paint();
         interetRectPaint.reset();
-        interetRectPaint.setColor(Color.rgb(119,119,0));
+        interetRectPaint.setColor(Color.rgb(119, 119, 0));
         interetRectPaint.setStrokeWidth(5);
         interetRectPaint.setStyle(Paint.Style.FILL);
         interetRectPaint.setAntiAlias(true);
@@ -143,22 +143,22 @@ public class Rectangle implements Serializable {
     }
 
     public Point getCircleLeft() {
-        circleLeft = new Point((int)rectangle.left,(int)(rectangle.top + rectangle.bottom) / 2);
+        circleLeft = new Point((int) rectangle.left, (int) (rectangle.top + rectangle.bottom) / 2);
         return circleLeft;
     }
 
     public Point getCircleRight() {
-        circleRight = new Point((int)rectangle.right,(int)(rectangle.top + rectangle.bottom) / 2);
+        circleRight = new Point((int) rectangle.right, (int) (rectangle.top + rectangle.bottom) / 2);
         return circleRight;
     }
 
     public Point getCircleTop() {
-        circleTop = new Point((int)(rectangle.left + rectangle.right) / 2 ,(int)rectangle.top);
+        circleTop = new Point((int) (rectangle.left + rectangle.right) / 2, (int) rectangle.top);
         return circleTop;
     }
 
     public Point getCircleBottom() {
-        circleBottom = new Point((int)(rectangle.left + rectangle.right) / 2 ,(int)rectangle.bottom);
+        circleBottom = new Point((int) (rectangle.left + rectangle.right) / 2, (int) rectangle.bottom);
         return circleBottom;
     }
 
@@ -168,6 +168,38 @@ public class Rectangle implements Serializable {
 
     public void setLeftInteret(float leftInteret) {
         this.leftInteret = leftInteret;
+    }
+
+    public void setLeft(float left) {
+        this.rectangle.left = left;
+    }
+
+    public void setTop(float top) {
+        this.rectangle.top = top;
+    }
+
+    public void setRight(float right) {
+        this.rectangle.right = right;
+    }
+
+    public void setBottom(float bottom) {
+        this.rectangle.bottom = bottom;
+    }
+
+    public float getLeft() {
+        return this.rectangle.left;
+    }
+
+    public float getTop() {
+        return this.rectangle.top;
+    }
+
+    public float getRight() {
+        return this.rectangle.right;
+    }
+
+    public float getBottom() {
+        return this.rectangle.bottom;
     }
 
     public float getTopInteret() {
@@ -182,32 +214,38 @@ public class Rectangle implements Serializable {
         return rightInteret;
     }
 
-    public float getRecInteretLeft(){
+    public float getRecInteretLeft() {
         return rectangle.left;
     }
-    public float getRecInteretTop(){
+
+    public float getRecInteretTop() {
         return rectangle.top;
     }
-    public float getRecInteretRight(){
-        return (rectangle.left+ ( rectangle.right/4 ))*2;
+
+    public float getRecInteretRight() {
+        return (rectangle.left + (rectangle.right / 4)) * 2;
     }
-    public float getRecInteretBottom(){
-        return (rectangle.top + ( rectangle.bottom/6 ));
+
+    public float getRecInteretBottom() {
+        return (rectangle.top + (rectangle.bottom / 6));
     }
-    public void remove(String UID){
+
+    public void remove(String UID) {
         Line line = getLine(UID);
-        if(line != null){
+        if (line != null) {
             rectanglesId.remove(line);
         }
     }
-    private Line getLine(String UID){
-        for (Line l: rectanglesId) {
-            if(l.getGoToId().equals(UID)){
+
+    private Line getLine(String UID) {
+        for (Line l : rectanglesId) {
+            if (l.getGoToId().equals(UID)) {
                 return l;
             }
         }
         return null;
     }
+
     public void setRightInteret(float rightInteret) {
         this.rightInteret = rightInteret;
     }
@@ -239,7 +277,6 @@ public class Rectangle implements Serializable {
     public String getUID() {
         return UID;
     }
-
 
 
     public int getNormalColor() {
@@ -296,21 +333,25 @@ public class Rectangle implements Serializable {
 
 
     public float getTextStartX() {
-        return  (rectangle.left + rectangle.right) / 2;
+        return (rectangle.left + rectangle.right) / 2;
     }
+
     public float getTextStartY() {
-        return  (rectangle.top + rectangle.bottom) / 2;
+        return (rectangle.top + rectangle.bottom) / 2;
     }
+
     public float getInteretStartX() {
-        return  (interetRectangle.left + interetRectangle.right) / 2;
+        return (interetRectangle.left + interetRectangle.right) / 2;
     }
+
     public float getInteretStartY() {
-        return  (interetRectangle.top + interetRectangle.bottom) / 2;
+        return (interetRectangle.top + interetRectangle.bottom) / 2;
     }
 
     public Paint getTextPaint() {
         return textPaint;
     }
+
     public Paint getInteretPaint() {
         return interetPaint;
     }
@@ -344,13 +385,14 @@ public class Rectangle implements Serializable {
         return UID;
     }
 
-    public void add(Line line){
+    public void add(Line line) {
         rectanglesId.add(line);
     }
+
     @Override
     public String toString() {
         String s;
-        s = "( "+getRectangle().left+" , " + getRectangle().top +" , " + getRectangle().right + " , " + getRectangle().bottom + " )";
+        s = "( " + getRectangle().left + " , " + getRectangle().top + " , " + getRectangle().right + " , " + getRectangle().bottom + " )";
         return s;
     }
 }

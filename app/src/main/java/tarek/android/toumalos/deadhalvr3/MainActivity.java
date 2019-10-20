@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText rectW, rectH, rectName, changeNameEdit, changeInteretEdit;
     private TextView rotationEditText;
     private SeekBar seekZoom, seekY, seekX, seekRotation;
-    private LinearLayout buttonsLayout, seekLayout, addingLayout, buttonsPrincipaleLayout, RotationLayout, nametLayout, interetLayout;
+    private LinearLayout buttonsLayout, seekLayout, addingLayout, buttonsPrincipaleLayout, RotationLayout, nametLayout, interetLayout,figurineLayout;
+    private CircleImageView minotaure;
     private Maze theMaze;
     private int left = 0;
     private int top = 0;
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         cancel = (CircleImageView) findViewById(R.id.cancel);
         cancelAdd = (CircleImageView) findViewById(R.id.cancelAdd);
         valideAdd = (CircleImageView) findViewById(R.id.valideAdd);
+        minotaure = (CircleImageView) findViewById(R.id.minotaure);
         cancelRotate = (CircleImageView) findViewById(R.id.cancelRotate);
         seekZoom = (SeekBar) findViewById(R.id.SeekZoom);
         seekY = (SeekBar) findViewById(R.id.SeekX);
@@ -132,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         addingLayout = (LinearLayout) findViewById(R.id.addingLayout);
         nametLayout = (LinearLayout) findViewById(R.id.NametLayout);
         interetLayout = (LinearLayout) findViewById(R.id.InteretLayout);
+        figurineLayout = (LinearLayout) findViewById(R.id.figurineLayout);
         buttonsPrincipaleLayout = (LinearLayout) findViewById(R.id.buttonsPrincipaleLayout);
         RotationLayout = (LinearLayout) findViewById(R.id.RotationLayout);
         rectH = (EditText) findViewById(R.id.rectH);
@@ -180,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         options.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                drawing.calculerLeChemin();
             }
         });
         add.setOnClickListener(new View.OnClickListener() {
@@ -425,6 +428,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        minotaure.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                buttonsLayout.setVisibility(View.VISIBLE);
+                figurineLayout.setVisibility(View.GONE);
+                drawing.setMode(Global.MINOTORE);
+                return true;
+            }
+        });
+
         initDialog();
         loadMaze();
     }
@@ -634,6 +647,17 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
+                return true;
+
+            case R.id.gotorect:
+                interetLayout.setVisibility(View.GONE);
+                nametLayout.setVisibility(View.GONE);
+                buttonsLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
+                seekLayout.setVisibility(View.GONE);
+                RotationLayout.setVisibility(View.GONE);
+                figurineLayout.setVisibility(View.VISIBLE);
                 return true;
             default:
                 return super.onContextItemSelected(item);

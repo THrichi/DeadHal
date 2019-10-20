@@ -1,5 +1,7 @@
 package tarek.android.toumalos.deadhalvr3.Models;
 
+import android.graphics.Point;
+
 import java.io.Serializable;
 
 public class Line implements Serializable {
@@ -39,5 +41,9 @@ public class Line implements Serializable {
 
     public void setDirection_second(String direction_second) {
         this.direction_second = direction_second;
+    }
+
+    public double distance(Point A, Point B){
+        return  Math.sqrt(((B.x - A.x)*(B.x - A.x)) +((B.y - A.y)*(B.y - A.y)));
     }
 }
