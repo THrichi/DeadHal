@@ -304,13 +304,13 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                             if (rect.getRectangle().contains(event.getX(), event.getY())) {
                                 if (contains(menuItemSelected, rect.getUID())) {
                                     menuItemSelected = rect;
+                                    colorSelected(rect);
                                     return true;
                                 } else {
                                     if (!rect.equals(menuItemSelected)) {
                                         notInTheRoad = rect;
                                         removeMonoTouchRect(rect);
                                     }
-
                                 }
                             }
                         }
@@ -425,6 +425,16 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return value;
     }
 
+    private void colorSelected(Rectangle rect) {
+        if (rect != null) {
+            rectangles.remove(rect);
+            resetColorLines();
+            rect.getLinePaint().setColor(Color.RED);
+            //changesRelationColors(selectedRect);
+            rectangles.add(rect);
+        }
+    }
+
     private void addMonoTouchRect() {
         if (!monoTouchList.contains(menuItemSelected))
             monoTouchList.add(menuItemSelected);
@@ -442,7 +452,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             notInTheRoad.setName(savedName);
             rectangles.add(notInTheRoad);
             savedInteret = "";
-            savedInteret="";
+            savedInteret = "";
         }
         for (Rectangle rect : rectangles) {
             if (!monoTouchList.contains(rect)) {
@@ -452,9 +462,11 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         }
         postInvalidate();
     }
-    public void resetMonotouch(){
+
+    public void resetMonotouch() {
         monoTouchList = new ArrayList<>();
     }
+
     private Boolean checkIfTouch() {
         for (Rectangle rect : rectangles) {
             if (rect.getRectangle().contains(mooveX, mooveY)) {
@@ -660,6 +672,13 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return null;
     }
 
+    public void back() {
+        if (theMaze != null && mazeBookRefDoc != null) {
+            this.theMaze.setOnLine(false);
+            mazeBookRefDoc.set(this.theMaze);
+        }
+    }
+
     public Maze save() {
         if (theMaze != null && rectangles != null) {
             List<RectangleParser> rectangleParserResult = new ArrayList<>();
@@ -695,6 +714,8 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         this.theMaze = theMaze;
         if (this.theMaze != null) {
             mazeBookRefDoc = db.collection(user.getUid()).document(theMaze.getName());
+            this.theMaze.setOnLine(true);
+            mazeBookRefDoc.set(this.theMaze);
             this.rectangles = new ArrayList<>();
             for (RectangleParser parser : this.theMaze.getRectangles()) {
                 this.rectangles.add(new Rectangle(parser));

@@ -12,6 +12,11 @@ public class Global {
     public final static String STREAMING ="STREAMING";
     public final static String SELECTED ="SELECTED";
     public final static String MINOTORE ="MINOTORE";
+    public final static String NORMAL_LIST ="NORMAL_LIST";
+    public final static String FOLLOW_LIST ="FOLLOW_LIST";
+    public final static String ADMIN ="ADMIN";
+    public final static String EDITER ="EDITER";
+    public final static String VIEWER ="VIEWER";
     public final static String NOTHING ="";
     public final static int MY_REQUEST_CODE = 7521;
 

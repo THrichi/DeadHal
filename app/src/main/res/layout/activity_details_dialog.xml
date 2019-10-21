@@ -23,8 +23,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1" />
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/detailsCancel"
@@ -40,22 +39,81 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:fontFamily="@font/allerta_stencil"
             android:background="@drawable/rectangle"
-            android:fontFamily="monospace"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textAlignment="center"
+            android:textColor="#5708E6"
             android:textSize="22dp" />
 
-        <TextView
-            android:id="@+id/detailsCode"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
             android:background="@drawable/rectangle"
-            android:fontFamily="monospace"
+            android:layout_marginBottom="5dp"
             android:gravity="center"
-            android:textColor="#000000"
-            android:textSize="18dp" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/detailsCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:fontFamily="@font/allerta_stencil"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="#0A29E6"
+                android:textSize="18dp" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/shareCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:src="@drawable/ic_share_black_24dp" />
+
+            <ImageView
+                android:id="@+id/copyCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:src="@drawable/ic_content_copy_black_24dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/editCodeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rectangle"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/detailsEditCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:fontFamily="@font/allerta_stencil"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="#0A29E6"
+                android:textSize="18dp" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/shareEditCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:src="@drawable/ic_share_black_24dp" />
+
+            <ImageView
+                android:id="@+id/copyEditCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:src="@drawable/ic_content_copy_black_24dp" />
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/detailsScreen"
