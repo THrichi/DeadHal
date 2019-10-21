@@ -304,6 +304,7 @@ public class ProfilActivity extends AppCompatActivity {
 
     private void getFollowMazeList() {
         followListMaze = new ArrayList<>();
+        Toast.makeText(context, "Size : " + currentUser.getFollowingMazes().size(), Toast.LENGTH_SHORT).show();
         for (User user : users) {
             db.collection(user.getId())
                     .get()
@@ -312,13 +313,16 @@ public class ProfilActivity extends AppCompatActivity {
                         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                             for (DocumentSnapshot doc : queryDocumentSnapshots) {
                                 Maze maze = doc.toObject(Maze.class);
-                                    if (currentUser.getFollowingMazes().contains(maze.getCode())) {
-                                        maze.setStatus(Global.VIEWER);
-                                    } else if (currentUser.getFollowingMazes().contains(maze.getEditCode())) {
-                                        maze.setStatus(Global.EDITER);
-                                    }
+                                if (currentUser.getFollowingMazes().contains(maze.getCode())) {
+                                    maze.setStatus(Global.VIEWER);
                                     if (!contains(maze))
                                         followListMaze.add(maze);
+                                } else if (currentUser.getFollowingMazes().contains(maze.getEditCode())) {
+                                    maze.setStatus(Global.EDITER);
+                                    if (!contains(maze))
+                                        followListMaze.add(maze);
+                                }
+
                             }
                             setUpFollowRecycleView();
                         }
