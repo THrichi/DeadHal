@@ -10,24 +10,16 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.GestureDetector;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.widget.PopupMenu;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,16 +29,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Models.Astart;
-import tarek.android.toumalos.deadhalvr3.Models.Chemin;
 import tarek.android.toumalos.deadhalvr3.Models.Line;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
 import tarek.android.toumalos.deadhalvr3.Models.RectangleParser;
 import tarek.android.toumalos.deadhalvr3.R;
-import tarek.android.toumalos.deadhalvr3.StreamingActivity;
 
 public class Drawing extends View implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
 
@@ -77,6 +66,9 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     private String direction_second;
     private Rectangle menuItemSelected;
     private float previousScal = 0;
+    private List<Rectangle> monoTouchList;
+    private Rectangle notInTheRoad;
+    private String savedName = "", savedInteret = "";
     //dialog
     private Dialog directionDialog;
     private LinearLayout onedirection, twodirections;
@@ -102,6 +94,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         circlePaint.setAntiAlias(true);
 
         this.rectangles = new ArrayList<>();
+        this.monoTouchList = new ArrayList<>();
         gestureDetector = new GestureDetector(context, this);
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
         gestureDetector.setOnDoubleTapListener(this);
@@ -141,8 +134,17 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         for (Rectangle rect : rectangles) {
             drawLines(canvas, rect);
         }
-        if (mode.equals(Global.MINOTORE))
+        if (mode.equals(Global.MINOTORE)) {
             drawFigurine(canvas, mooveX, mooveY);
+            if (notInTheRoad != null) {
+                drawXrect(canvas, notInTheRoad);
+            }
+            if (!checkIfTouch()) {
+                reset();
+                notInTheRoad = null;
+            }
+        }
+
         canvas.restore();
         save();
     }
@@ -217,6 +219,24 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return result;
     }
 
+    public float getMooveX() {
+        return mooveX;
+    }
+
+    public void setMooveX(float mooveX) {
+        this.mooveX = mooveX;
+        postInvalidate();
+    }
+
+    public float getMooveY() {
+        return mooveY;
+    }
+
+    public void setMooveY(float mooveY) {
+        this.mooveY = mooveY;
+        postInvalidate();
+    }
+
     public float getLinrY(Rectangle rectangle, String direction) {
         return (rectangle.getRectangle().top + rectangle.getRectangle().bottom) / 2;
     }
@@ -240,23 +260,25 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             case MotionEvent.ACTION_DOWN: {
                 clickedX = (int) event.getX();
                 clickedY = (int) event.getY();
-                for (Rectangle rect : rectangles) {
-                    rect.setColor(rect.getNormalColor());
-                    if (rect.getRectangle().contains(event.getX(), event.getY())) {
-                        selectedRect = rect;
+                if (mode != Global.MINOTORE) {
+
+                    for (Rectangle rect : rectangles) {
+                        rect.setColor(rect.getNormalColor());
+                        if (rect.getRectangle().contains(event.getX(), event.getY())) {
+                            selectedRect = rect;
+                        }
                     }
-                }
 
-                if (selectedRect != null) {
-                    rectangles.remove(selectedRect);
-                    selectedRect.setColor(selectedRect.getSelectedColor());
-                    resetColorLines();
-                    selectedRect.getLinePaint().setColor(Color.RED);
-                    //changesRelationColors(selectedRect);
-                    rectangles.add(selectedRect);
-                }
+                    if (selectedRect != null) {
+                        rectangles.remove(selectedRect);
+                        selectedRect.setColor(selectedRect.getSelectedColor());
+                        resetColorLines();
+                        selectedRect.getLinePaint().setColor(Color.RED);
+                        //changesRelationColors(selectedRect);
+                        rectangles.add(selectedRect);
+                    }
 
-                if (mode.equals(Global.MOOVE)) {
+                } else if (mode.equals(Global.MOOVE)) {
 
                 }
                 postInvalidate();
@@ -274,7 +296,25 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         selectedRect.getInteretRectangle().offsetTo(event.getX(), event.getY());
                         rectangles.add(selectedRect);
                     }
-                } else if (mode.equals(Global.ADD)) {
+                } else if (mode.equals(Global.MINOTORE)) {
+                    if (menuItemSelected != null) {
+                        addMonoTouchRect();
+                        colorMonoTouch();
+                        for (Rectangle rect : rectangles) {
+                            if (rect.getRectangle().contains(event.getX(), event.getY())) {
+                                if (contains(menuItemSelected, rect.getUID())) {
+                                    menuItemSelected = rect;
+                                    return true;
+                                } else {
+                                    if (!rect.equals(menuItemSelected)) {
+                                        notInTheRoad = rect;
+                                        removeMonoTouchRect(rect);
+                                    }
+
+                                }
+                            }
+                        }
+                    }
 
                 } else if (mode.equals(Global.RESIZE)) {
 
@@ -385,10 +425,89 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return value;
     }
 
+    private void addMonoTouchRect() {
+        if (!monoTouchList.contains(menuItemSelected))
+            monoTouchList.add(menuItemSelected);
+    }
+
+    private void removeMonoTouchRect(Rectangle rectangle) {
+        if (monoTouchList.contains(rectangle))
+            monoTouchList.remove(rectangle);
+    }
+
+    private void reset() {
+        if (notInTheRoad != null) {
+            rectangles.remove(notInTheRoad);
+            notInTheRoad.setInteret(savedInteret);
+            notInTheRoad.setName(savedName);
+            rectangles.add(notInTheRoad);
+            savedInteret = "";
+            savedInteret="";
+        }
+        for (Rectangle rect : rectangles) {
+            if (!monoTouchList.contains(rect)) {
+                rect.getPaint().setStyle(Paint.Style.FILL);
+                rect.setColor(rect.getNormalColor());
+            }
+        }
+        postInvalidate();
+    }
+    public void resetMonotouch(){
+        monoTouchList = new ArrayList<>();
+    }
+    private Boolean checkIfTouch() {
+        for (Rectangle rect : rectangles) {
+            if (rect.getRectangle().contains(mooveX, mooveY)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void drawXrect(Canvas canvas, Rectangle rectangle) {
+        Paint paint = new Paint();
+        paint.reset();
+        paint.setColor(Color.RED);
+        paint.setStrokeWidth(7);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setAntiAlias(true);
+        if (!rectangle.getName().equals("")) {
+            savedName = rectangle.getName();
+        }
+        if (!rectangle.getInteret().equals("")) {
+            savedInteret = rectangle.getInteret();
+        }
+
+        rectangles.remove(rectangle);
+        rectangle.setName("");
+        rectangle.setInteret("");
+        rectangle.getPaint().setStyle(Paint.Style.STROKE);
+        canvas.drawLine(rectangle.getRectangle().left, rectangle.getRectangle().top, rectangle.getRectangle().right, rectangle.getRectangle().bottom, paint);
+        canvas.drawLine(rectangle.getRectangle().right, rectangle.getRectangle().top, rectangle.getRectangle().left, rectangle.getRectangle().bottom, paint);
+        rectangles.add(rectangle);
+        postInvalidate();
+    }
+
+    private void colorMonoTouch() {
+        for (Rectangle rect : monoTouchList) {
+            rect.setColor(rect.getMonotouchColor());
+        }
+        postInvalidate();
+    }
+
     private void resetColorLines() {
         for (Rectangle rect : rectangles) {
             rect.getLinePaint().setColor(Color.BLACK);
         }
+    }
+
+    private boolean contains(Rectangle rect, String UID) {
+        for (Line line : rect.getRectanglesId()) {
+            if (line.getGoToId().equals(UID)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setLine(final Rectangle rectangle) {
@@ -804,7 +923,8 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         Paint paint = new Paint();
         paint.reset();
         paint.setAntiAlias(true);
-        canvas.drawBitmap(b, X-50, Y-60, paint);
+        canvas.drawBitmap(b, X - 50, Y - 60, paint);
+
     }
 
     private void ZoonOut() {

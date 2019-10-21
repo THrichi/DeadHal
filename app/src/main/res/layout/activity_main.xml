@@ -320,39 +320,4 @@
             android:layout_weight="7"
             android:src="@drawable/ic_check_circle_black_24dp" />
     </LinearLayout>
-    <LinearLayout
-        android:id="@+id/figurineLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/minotaure"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="7"
-            android:src="@mipmap/minotoror" />
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="7" />
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="7"/>
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="7" />
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="7"/>
-
-    </LinearLayout>
 </LinearLayout>

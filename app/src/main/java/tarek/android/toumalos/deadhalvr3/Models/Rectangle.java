@@ -22,6 +22,7 @@ public class Rectangle implements Serializable {
     private RectF rectangle;
     private RectF interetRectangle;
     private int normalColor;
+    private int monotouchColor;
     private int selectedColor;
     private float rotation;
     private String name;
@@ -92,6 +93,7 @@ public class Rectangle implements Serializable {
         this.UID = parser.getId();
         this.rectanglesId = parser.getRectanglesId();
         this.normalColor = Color.rgb(128, 128, 192);
+        this.monotouchColor = Color.rgb(56, 224, 254);
         this.selectedColor = Color.rgb(119, 187, 255);
         paint = new Paint();
         paint.reset();
@@ -200,6 +202,14 @@ public class Rectangle implements Serializable {
 
     public float getBottom() {
         return this.rectangle.bottom;
+    }
+
+    public int getMonotouchColor() {
+        return monotouchColor;
+    }
+
+    public void setMonotouchColor(int monotouchColor) {
+        this.monotouchColor = monotouchColor;
     }
 
     public float getTopInteret() {
