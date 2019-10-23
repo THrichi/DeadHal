@@ -5,10 +5,12 @@ import androidx.annotation.NonNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 
 public class Maze implements Serializable {
+    private String uid;
     private String code;
     private String editCode;
     private String status;
@@ -16,12 +18,16 @@ public class Maze implements Serializable {
     private String userId;
     private boolean onLine;
     private List<RectangleParser> rectangles;
+    private float mooveX;
+    private float mooveY;
 
     public Maze() {
         rectangles = new ArrayList<>();
     }
 
     public Maze(String userId, String code, String editCode, String name, boolean onLine) {
+        UUID uuid = UUID.randomUUID();
+        this.uid = uuid.toString();
         this.userId = userId;
         this.code = code;
         this.name = name;
@@ -29,6 +35,10 @@ public class Maze implements Serializable {
         this.onLine = onLine;
         this.rectangles = new ArrayList<>();
         this.status = Global.ADMIN;
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     public String getStatus() {
@@ -85,6 +95,22 @@ public class Maze implements Serializable {
 
     public void setRectangles(List<RectangleParser> rectangles) {
         this.rectangles = rectangles;
+    }
+
+    public float getMooveX() {
+        return mooveX;
+    }
+
+    public void setMooveX(float mooveX) {
+        this.mooveX = mooveX;
+    }
+
+    public float getMooveY() {
+        return mooveY;
+    }
+
+    public void setMooveY(float mooveY) {
+        this.mooveY = mooveY;
     }
 
     @NonNull

@@ -13,6 +13,7 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
+import tarek.android.toumalos.deadhalvr3.Models.User;
 import tarek.android.toumalos.deadhalvr3.R;
 
 public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
@@ -20,9 +21,12 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
     private OnOpenClickListener listenerOpen;
     private OnDetailsClickListener listenerDetails;
     private OnRemoveClickListener listenerRemove;
-    private String mode;
-    private String userId;
+    private OnViewClickListener listenerView;
+    private User currentUser;
 
+    public interface OnViewClickListener {
+        void onItemClick(int position);
+    }
     public interface OnOpenClickListener {
         void onItemClick(int position);
     }
@@ -43,33 +47,23 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
         this.listenerDetails = listenerDetails;
     }
 
+    public void setOnViewClickListener(OnViewClickListener listenerView) {
+        this.listenerView = listenerView;
+    }
     public void setOnRemoveClickListener(OnRemoveClickListener listenerRemove) {
         this.listenerRemove = listenerRemove;
     }
 
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public MazeAdapter(List<Maze> mazeItems, String mode, String userId) {
+    public MazeAdapter(List<Maze> mazeItems, User currentUser) {
         this.mazeItems = mazeItems;
-        this.mode = mode;
-        this.userId = userId;
+        this.currentUser = currentUser;
     }
 
     @NonNull
     @Override
     public MazeHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.maze_item, parent, false);
-        return new MazeHolder(v, listenerOpen, listenerDetails, listenerRemove);
+        return new MazeHolder(v, listenerOpen, listenerDetails, listenerRemove,listenerView);
     }
 
     @Override
@@ -77,27 +71,64 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
         Maze currentItem = mazeItems.get(position);
         holder.mazeName.setText(currentItem.getName());
 
-        if (currentItem.getStatus().equals(Global.EDITER) || currentItem.getStatus().equals(Global.ADMIN)) {
+        if (currentItem.isOnLine()) {
+            holder.status.setImageResource(R.drawable.ic_online);
+        } else {
+            holder.status.setImageResource(R.drawable.ic_offline);
+        }
+
+        holder.details.setVisibility(View.VISIBLE);
+
+        if (isAdmin(currentItem.getUid())) {
             if (currentItem.isOnLine()) {
-                holder.status.setImageResource(R.drawable.ic_online);
                 holder.open.setVisibility(View.GONE);
+                holder.delete.setVisibility(View.GONE);
                 holder.view.setVisibility(View.VISIBLE);
             } else {
-                holder.status.setImageResource(R.drawable.ic_offline);
                 holder.open.setVisibility(View.VISIBLE);
+                holder.delete.setVisibility(View.VISIBLE);
                 holder.view.setVisibility(View.GONE);
             }
-        } else if (currentItem.getStatus().equals(Global.VIEWER)) {
+        } else if (isEditer(currentItem.getUid())) {
             if (currentItem.isOnLine()) {
-                holder.status.setImageResource(R.drawable.ic_online);
                 holder.open.setVisibility(View.GONE);
+                holder.delete.setVisibility(View.VISIBLE);
                 holder.view.setVisibility(View.VISIBLE);
             } else {
-                holder.status.setImageResource(R.drawable.ic_offline);
+                holder.open.setVisibility(View.VISIBLE);
+                holder.delete.setVisibility(View.VISIBLE);
+                holder.view.setVisibility(View.GONE);
+            }
+        } else if (isViewer(currentItem.getUid())) {
+            if (currentItem.isOnLine()) {
                 holder.open.setVisibility(View.GONE);
+                holder.delete.setVisibility(View.VISIBLE);
+                holder.view.setVisibility(View.VISIBLE);
+            } else {
+                holder.open.setVisibility(View.GONE);
+                holder.delete.setVisibility(View.VISIBLE);
                 holder.view.setVisibility(View.GONE);
             }
         }
+
+    }
+
+    private boolean isAdmin(String mazeUid) {
+        if (currentUser.getMazes().contains(mazeUid))
+            return true;
+        return false;
+    }
+
+    private boolean isEditer(String mazeUid) {
+        if (currentUser.getEditableMazes().contains(mazeUid))
+            return true;
+        return false;
+    }
+
+    private boolean isViewer(String mazeUid) {
+        if (currentUser.getViewMazes().contains(mazeUid))
+            return true;
+        return false;
     }
 
     @Override
@@ -115,7 +146,7 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
         CircleImageView status;
         CircleImageView view;
 
-        public MazeHolder(@NonNull View itemView, final OnOpenClickListener listenerOpen, final OnDetailsClickListener listenerDetails, final OnRemoveClickListener listenerRemove) {
+        public MazeHolder(@NonNull View itemView, final OnOpenClickListener listenerOpen, final OnDetailsClickListener listenerDetails, final OnRemoveClickListener listenerRemove, final OnViewClickListener listenerView) {
             super(itemView);
             mazeName = itemView.findViewById(R.id.mazeName);
             open = itemView.findViewById(R.id.openMaze);
@@ -153,6 +184,18 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             listenerDetails.onItemClick(position);
+                        }
+                    }
+                }
+            });
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listenerView != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            listenerView.onItemClick(position);
                         }
                     }
                 }

@@ -36,6 +36,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -95,8 +96,8 @@ public class ProfilActivity extends AppCompatActivity {
     private Dialog detailsDialog;
     //Firestore
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference mazebookRef = db.collection(user.getUid());
-    private CollectionReference userIds = db.collection("userIDs");
+    private CollectionReference mazebookRef;
+    private DocumentReference userDocRef;
     //RecycleView
     private RecyclerView recyclerView, recyclerViewFollow;
     private MazeAdapter mazeAdapter, mazeAdapterFollow;
@@ -115,8 +116,13 @@ public class ProfilActivity extends AppCompatActivity {
         users = new ArrayList<>();
         followListMaze = new ArrayList<>();
         mazes = new ArrayList<>();
+        currentUser = new User();
+        //Firebase
+        userDocRef = db.collection("userIDs").document(user.getUid());
+        mazebookRef = db.collection("mazes");
         storageRef = FirebaseStorage.getInstance().getReference("uploads");
         databaseRef = FirebaseDatabase.getInstance().getReference("uploads");
+        //dialog
         initDialog();
         profilImage = (CircleImageView) findViewById(R.id.profilImage);
         logOut = (CircleImageView) findViewById(R.id.logOut);
@@ -212,9 +218,7 @@ public class ProfilActivity extends AppCompatActivity {
         followCodeValide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (followCodeEditText.getText().toString().length() > 0) {
-                    searchMaze(followCodeEditText.getText().toString());
-                }
+                SearchMaze(followCodeEditText.getText().toString());
             }
         });
         copyCode.setOnClickListener(new View.OnClickListener() {
@@ -233,187 +237,80 @@ public class ProfilActivity extends AppCompatActivity {
                 detailsDialog.dismiss();
             }
         });
-        addUserId();
-
+        getCurrentUser();
     }
 
-    private void addUserId() {
-        userIds.get()
+    private void SearchMaze(final String mazeCode) {
+        mazebookRef.whereEqualTo("code", mazeCode)
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         boolean found = false;
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                            User u = doc.toObject(User.class);
-                            users.add(u);
-                            if (u.getId().equals(user.getUid())) {
-                                found = true;
-                                currentUser = u;
+                        Maze maze = null;
+                        for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
+                            maze = qs.toObject(Maze.class);
+                        }
+                        if (maze != null) {
+                            found = true;
+                            if (!currentUser.getMazes().contains(maze.getUid())) {
+                                if (!currentUser.getEditableMazes().contains(maze.getUid())) {
+                                    if (!currentUser.getViewMazes().contains(maze.getUid())) {
+                                        followCodeEditText.setText("");
+                                        initfoundMazeDetails(maze, Global.VIEWER);
+                                    } else {
+                                        Toast.makeText(context, "Ce Labyrinth existe déjà dans votre liste", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Ce Labyrinth existe déjà dans votre liste", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(context, "Vous ne pouvez pas suivre votre labyrinthe !!", Toast.LENGTH_SHORT).show();
                             }
                         }
                         if (!found) {
-                            String name = user.getDisplayName();
-                            if (name == null) {
-                                name = "Guest";
-                            }
-                            User u = new User(name, user.getUid(), new ArrayList<String>());
-                            userIds.document(user.getUid()).set(u);
-                            users.add(u);
-                            currentUser = u;
+                            SearchEditableMaze(mazeCode);
                         }
-                        refreshFollowList();
                     }
                 });
     }
 
-    private void searchMaze(final String code) {
-        for (User user : users) {
-            db.collection(user.getId()).whereEqualTo("code", code)
-                    .get()
-                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                                mazeSeached = doc.toObject(Maze.class);
-                                if (mazeSeached != null)
-                                    setMazeSearchInfos(mazeSeached, false);
-                            }
-                            if (mazeSeached == null)
-                                searchEditedMaze(code);
-                        }
-                    });
-        }
-    }
+    private void SearchEditableMaze(String mazeEditCode) {
 
-    private void searchEditedMaze(String editCode) {
-        for (User user : users) {
-            db.collection(user.getId()).whereEqualTo("editCode", editCode)
-                    .get()
-                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                                mazeSeached = doc.toObject(Maze.class);
-                                if (mazeSeached != null)
-                                    setMazeSearchInfos(mazeSeached, true);
-                            }
-                        }
-                    });
-        }
-    }
-
-    private void getFollowMazeList() {
-        followListMaze = new ArrayList<>();
-        Toast.makeText(context, "Size : " + currentUser.getFollowingMazes().size(), Toast.LENGTH_SHORT).show();
-        for (User user : users) {
-            db.collection(user.getId())
-                    .get()
-                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                            for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                                Maze maze = doc.toObject(Maze.class);
-                                if (currentUser.getFollowingMazes().contains(maze.getCode())) {
-                                    maze.setStatus(Global.VIEWER);
-                                    if (!contains(maze))
-                                        followListMaze.add(maze);
-                                } else if (currentUser.getFollowingMazes().contains(maze.getEditCode())) {
-                                    maze.setStatus(Global.EDITER);
-                                    if (!contains(maze))
-                                        followListMaze.add(maze);
-                                }
-
-                            }
-                            setUpFollowRecycleView();
-                        }
-                    });
-        }
-    }
-
-    private boolean contains(Maze maze) {
-        for (Maze m : followListMaze) {
-            if (m.getCode().equals(maze.getCode()))
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        mazebookRef.addSnapshotListener(this, new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                mazes = new ArrayList<>();
-                for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
-                    Maze item = qs.toObject(Maze.class);
-                    mazes.add(item);
-                }
-                setUpRecycleView();
-            }
-        });
-    }
-
-    private void refreshFollowList() {
-        for (User u : users) {
-            db.collection(u.getId()).addSnapshotListener(this, new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                    getFollowMazeList();
-                }
-            });
-        }
-    }
-
-    private void setMazeSearchInfos(final Maze mazeSeached, boolean isEditable) {
-        if (!currentUser.getFollowingMazes().contains(mazeSeached.getCode()) && !mazes.contains(mazeSeached) && !currentUser.getFollowingMazes().contains(mazeSeached.getEditCode())) {
-            followMazeName.setText(mazeSeached.getName());
-            final String code;
-            if (isEditable) {
-                mazeSeached.setStatus(Global.EDITER);
-                code = mazeSeached.getEditCode();
-            } else {
-                mazeSeached.setStatus(Global.VIEWER);
-                code = mazeSeached.getCode();
-            }
-            layoutSearchFollowMaze.setVisibility(View.VISIBLE);
-            addFollowMaze.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    addFollowMaze(mazeSeached, code);
-                    layoutSearchFollowMaze.setVisibility(View.GONE);
-                    followCodeEditText.setText("");
-                    followListMaze.add(mazeSeached);
-                    mazeAdapterFollow.notifyItemInserted(followListMaze.size());
-                }
-            });
-            detailsFollowMaze.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    initDetails(mazeSeached);
-                }
-            });
-        } else {
-            Toast.makeText(context, "Ce Labyrinthe existe déjà dans votre liste", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void addFollowMaze(final Maze mazeSeached, final String code) {
-        userIds.document(user.getUid()).get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        mazebookRef.whereEqualTo("editCode", mazeEditCode)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        List<String> followList = new ArrayList<>();
-                        User u = documentSnapshot.toObject(User.class);
-                        if (u != null) {
-                            followList = new ArrayList<>(u.getFollowingMazes());
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        boolean found = false;
+                        Maze maze = null;
+                        for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
+                            maze = qs.toObject(Maze.class);
                         }
-                        followList.add(code);
-                        userIds.document(user.getUid()).update("followingMazes", followList);
+                        if (maze != null) {
+                            found = true;
+                            if (!currentUser.getMazes().contains(maze.getUid())) {
+                                if (!currentUser.getEditableMazes().contains(maze.getUid())) {
+                                    if (!currentUser.getViewMazes().contains(maze.getUid())) {
+                                        followCodeEditText.setText("");
+                                        initfoundMazeDetails(maze, Global.EDITER);
+                                    } else {
+                                        Toast.makeText(context, "Ce Labyrinth existe déjà dans votre liste", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Ce Labyrinth existe déjà dans votre liste", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(context, "Vous ne pouvez pas suivre votre labyrinthe !!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        if (!found) {
+                            Toast.makeText(context, "Aucun Labyrinth n'a été trouver", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
+
 
     private void initDialog() {
         detailsDialog = new Dialog(context);
@@ -502,21 +399,70 @@ public class ProfilActivity extends AppCompatActivity {
         }
     }
 
-    private void downloadFiles() {
-
+    private void initfoundMazeDetails(final Maze maze, final String status) {
+        layoutSearchFollowMaze.setVisibility(View.VISIBLE);
+        followMazeName.setText(maze.getName());
+        addFollowMaze.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layoutSearchFollowMaze.setVisibility(View.GONE);
+                if (status.equals(Global.EDITER)) {
+                    currentUser.getEditableMazes().add(maze.getUid());
+                    userDocRef.update("editableMazes", currentUser.getEditableMazes());
+                } else if (status.equals(Global.VIEWER)) {
+                    currentUser.getViewMazes().add(maze.getUid());
+                    userDocRef.update("viewMazes", currentUser.getViewMazes());
+                }
+                followListMaze.add(maze);
+                mazeAdapter.notifyItemInserted(followListMaze.size());
+            }
+        });
+        detailsFollowMaze.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                initDetails(maze);
+            }
+        });
     }
 
-    private Maze getMaze(String name) {
-        for (Maze maze : mazes) {
-            if (maze.getName().equals(name))
-                return maze;
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mazebookRef.addSnapshotListener(this, new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                mazes = new ArrayList<>();
+                followListMaze = new ArrayList<>();
+                for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
+                    Maze maze = qs.toObject(Maze.class);
+                    if (currentUser.getMazes().contains(maze.getUid())) {
+                        mazes.add(maze);
+                    } else if (currentUser.getViewMazes().contains(maze.getUid()) || currentUser.getEditableMazes().contains(maze.getUid())) {
+                        followListMaze.add(maze);
+                    }
+                }
+                setUpRecycleView();
+                setUpFollowRecycleView();
+            }
+        });
+    }
+
+    private void editFollowList(Maze maze) {
+        List<Maze> result = new ArrayList<>();
+        for (Maze m : followListMaze) {
+            if (m.getUid().equals(maze.getUid())) {
+                result.add(maze);
+            } else {
+                result.add(m);
+            }
         }
-        return null;
+        followListMaze = new ArrayList<>(result);
+        setUpFollowRecycleView();
     }
 
-    private Maze getFollowMaze(String name) {
-        for (Maze maze : followListMaze) {
-            if (maze.getName().equals(name))
+    private Maze getMaze(List<Maze> list, String uid) {
+        for (Maze maze : list) {
+            if (maze.getUid().equals(uid))
                 return maze;
         }
         return null;
@@ -531,57 +477,102 @@ public class ProfilActivity extends AppCompatActivity {
     private void addMaze() {
         if (nameNewMaze.getText().toString().length() > 0) {
             Maze m1 = new Maze(user.getUid(), codeEditText.getText().toString(), generateCode(), nameNewMaze.getText().toString(), true);
-            mazebookRef.document(nameNewMaze.getText().toString()).set(m1);
+            mazebookRef.document(m1.getUid()).set(m1);
+            if (currentUser != null) {
+                currentUser.getMazes().add(m1.getUid());
+                userDocRef.set(currentUser);
+            }
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("MazeName", nameNewMaze.getText().toString());
+            intent.putExtra("MazeId", m1.getUid());
             startActivity(intent);
         }
     }
 
-    /*
-        private void loadMazes() {
-            mazes = new ArrayList<>();
-            mazebookRef.get()
-                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                            for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
-                                Maze item = qs.toObject(Maze.class);
-                                mazes.add(item);
+
+    private void getCurrentUser() {
+        userDocRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        User user = documentSnapshot.toObject(User.class);
+                        if (user != null) {
+                            currentUser = user;
+                            getUserMazes();
+                            getFollowMazes();
+                        }
+                    }
+                });
+    }
+
+    private void getUserMazes() {
+        mazebookRef.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
+                            Maze maze = qs.toObject(Maze.class);
+                            if (maze != null) {
+                                if (currentUser.getMazes().contains(maze.getUid())) {
+                                    mazes.add(maze);
+                                }
                             }
-                            setUpRecycleView();
-                     }
-                    });
-        }*/
+                        }
+                        setUpRecycleView();
+                    }
+                });
+    }
+
+    private void getFollowMazes() {
+        mazebookRef.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        for (QueryDocumentSnapshot qs : queryDocumentSnapshots) {
+                            Maze maze = qs.toObject(Maze.class);
+                            if (maze != null) {
+                                if (currentUser.getEditableMazes().contains(maze.getUid()) || currentUser.getViewMazes().contains(maze.getUid())) {
+                                    followListMaze.add(maze);
+                                }
+                            }
+                        }
+                        setUpFollowRecycleView();
+                    }
+                });
+    }
 
     private void setUpFollowRecycleView() {
         recyclerViewFollow = findViewById(R.id.followListMazes);
         recyclerViewFollow.setHasFixedSize(true);
         layoutManagerFollow = new LinearLayoutManager(this);
-        mazeAdapterFollow = new MazeAdapter(followListMaze, Global.FOLLOW_LIST, user.getUid());
+        mazeAdapterFollow = new MazeAdapter(followListMaze, currentUser);
         recyclerViewFollow.setLayoutManager(layoutManagerFollow);
         recyclerViewFollow.setAdapter(mazeAdapterFollow);
 
         mazeAdapterFollow.setOnOpenClickListener(new MazeAdapter.OnOpenClickListener() {
             @Override
             public void onItemClick(int position) {
-                Intent intent = new Intent(context, StreamingActivity.class);
-                intent.putExtra("theMaze", getFollowMaze(followListMaze.get(position).getName()));
-                startActivity(intent);
+                openMaze(followListMaze.get(position));
             }
         });
         mazeAdapterFollow.setOnDetailsClickListener(new MazeAdapter.OnDetailsClickListener() {
             @Override
             public void onItemClick(int position) {
-                initDetails(getMaze(followListMaze.get(position).getName()));
+                initDetails(getMaze(followListMaze, followListMaze.get(position).getUid()));
             }
         });
 
         mazeAdapterFollow.setOnRemoveClickListener(new MazeAdapter.OnRemoveClickListener() {
             @Override
             public void onItemClick(int position) {
-                //Toast.makeText(context,followListMaze.get(position).getName(),Toast.LENGTH_SHORT).show();
                 dialogFollowConfirmation(followListMaze.get(position), position);
+            }
+        });
+        mazeAdapterFollow.setOnViewClickListener(new MazeAdapter.OnViewClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                Intent intent = new Intent(context, StreamingActivity.class);
+                intent.putExtra("theMaze", getMaze(followListMaze, followListMaze.get(position).getUid()));
+                startActivity(intent);
             }
         });
     }
@@ -590,39 +581,57 @@ public class ProfilActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.myListMazes);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
-        mazeAdapter = new MazeAdapter(mazes, Global.NORMAL_LIST, user.getUid());
+        mazeAdapter = new MazeAdapter(mazes, currentUser);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mazeAdapter);
 
         mazeAdapter.setOnOpenClickListener(new MazeAdapter.OnOpenClickListener() {
             @Override
             public void onItemClick(int position) {
-                openMaze(mazes.get(position).getName());
+                openMaze(mazes.get(position));
             }
         });
         mazeAdapter.setOnDetailsClickListener(new MazeAdapter.OnDetailsClickListener() {
             @Override
             public void onItemClick(int position) {
-                initDetails(getMaze(mazes.get(position).getName()));
+                initDetails(getMaze(mazes, mazes.get(position).getUid()));
             }
         });
 
         mazeAdapter.setOnRemoveClickListener(new MazeAdapter.OnRemoveClickListener() {
             @Override
             public void onItemClick(int position) {
-                dialogConfirmation(mazes.get(position).getName(), position);
+                dialogConfirmation(mazes.get(position).getUid(), position);
+            }
+        });
+
+        mazeAdapter.setOnViewClickListener(new MazeAdapter.OnViewClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                Intent intent = new Intent(context, StreamingActivity.class);
+                intent.putExtra("theMaze", getMaze(mazes, mazes.get(position).getUid()));
+                startActivity(intent);
             }
         });
     }
 
-    public void openMaze(String mazeName) {
+    public void openMaze(Maze maze) {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("MazeName", mazeName);
+        intent.putExtra("MazeId", maze.getUid());
         startActivity(intent);
     }
 
+    private void removeFollowedMaze(String code) {
+        List<Maze> result = new ArrayList<>();
+        for (Maze m : followListMaze) {
+            if (!m.getCode().equals(code))
+                result.add(m);
+        }
+        followListMaze = new ArrayList<>(result);
+    }
 
-    public void dialogFollowConfirmation(final Maze removedMaze, final int position) {
+
+    public void dialogFollowConfirmation(final Maze maze, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setMessage("Confirm removing selected object ?")
@@ -630,12 +639,14 @@ public class ProfilActivity extends AppCompatActivity {
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (removedMaze.getStatus().equals(Global.VIEWER))
-                            currentUser.getFollowingMazes().remove(removedMaze.getCode());
-                        else if (removedMaze.getStatus().equals(Global.EDITER))
-                            currentUser.getFollowingMazes().remove(removedMaze.getEditCode());
-                        userIds.document(user.getUid()).update("followingMazes", currentUser.getFollowingMazes());
-                        removeFollowedMaze(removedMaze.getCode());
+                        if (currentUser.getEditableMazes().contains(maze.getUid())) {
+                            currentUser.getEditableMazes().remove(maze.getUid());
+                            userDocRef.update("editableMazes", currentUser.getEditableMazes());
+                        } else if (currentUser.getViewMazes().contains(maze.getUid())) {
+                            currentUser.getViewMazes().remove(maze.getUid());
+                            userDocRef.update("viewMazes", currentUser.getViewMazes());
+                        }
+                        followListMaze.remove(maze);
                         mazeAdapterFollow.notifyItemRemoved(position);
                         mazeAdapterFollow.notifyItemRangeChanged(position, followListMaze.size());
                     }
@@ -650,16 +661,7 @@ public class ProfilActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    private void removeFollowedMaze(String code) {
-        List<Maze> result = new ArrayList<>();
-        for (Maze m : followListMaze) {
-            if (!m.getCode().equals(code))
-                result.add(m);
-        }
-        followListMaze = new ArrayList<>(result);
-    }
-
-    public void dialogConfirmation(final String mazeName, final int position) {
+    public void dialogConfirmation(final String mazeId, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setMessage("Confirm removing selected object ?")
@@ -667,7 +669,9 @@ public class ProfilActivity extends AppCompatActivity {
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mazebookRef.document(mazeName).delete();
+                        mazebookRef.document(mazeId).delete();
+                        currentUser.getMazes().remove(mazeId);
+                        userDocRef.update("mazes", currentUser.getMazes());
                         mazes.remove(position);
                         mazeAdapter.notifyItemRemoved(position);
                         mazeAdapter.notifyItemRangeChanged(position, mazes.size());

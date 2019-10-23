@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -64,19 +66,17 @@ public class MainActivity extends AppCompatActivity {
     private Context context;
     private int oldYprogress = -1;
     private int oldXprogress = -1;
-    private String mazeName;
+    private String mazeId;
     private Dialog linesDialog;
     //RecycleView
     private RecyclerView lineRecycleView;
     private LineAdapter lineAdapter;
     private RecyclerView.LayoutManager layoutManager;
     private List<LineItem> lineItems;
-    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
 
     //Firestore
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference mazebookRef = db.collection(user.getUid());
     private DocumentReference mazeBookRefDoc;
     private StorageReference storageRef;
     private DatabaseReference databaseRef;
@@ -86,12 +86,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
-        mazeName = getIntent().getStringExtra("MazeName");
-        mazeBookRefDoc = mazebookRef.document(mazeName);
+        mazeId = getIntent().getStringExtra("MazeId");
+        mazeBookRefDoc = db.collection("mazes").document(mazeId);
         drawing = (Drawing) findViewById(R.id.drawing);
         storageRef = FirebaseStorage.getInstance().getReference("uploads");
         databaseRef = FirebaseDatabase.getInstance().getReference("uploads");
-        drawing.setTheMaze(theMaze);
         add = (CircleImageView) findViewById(R.id.add);
         move = (CircleImageView) findViewById(R.id.move);
         resize = (CircleImageView) findViewById(R.id.resize);
@@ -168,7 +167,8 @@ public class MainActivity extends AppCompatActivity {
         options.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                drawing.calculerLeChemin();
+                //drawing.calculerLeChemin();
+                //drawing.scale();
             }
         });
         add.setOnClickListener(new View.OnClickListener() {
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         rotate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (drawing.getSelectedRectangle() != null) {
+                /*if (drawing.getSelectedRectangle() != null) {
                     drawing.setMode(Global.ROTATE);
                     buttonColors(Global.ROTATE);
 
@@ -205,8 +205,15 @@ public class MainActivity extends AppCompatActivity {
                     drawing.setMode(Global.NOTHING);
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
-                }
+                }*/
+                drawing.setMode(Global.ROTATE);
+                buttonColors(Global.ROTATE);
 
+                /*buttonsLayout.setVisibility(View.GONE);
+                RotationLayout.setVisibility(View.VISIBLE);
+                seekLayout.setVisibility(View.GONE);
+                buttonsPrincipaleLayout.setVisibility(View.GONE);
+                addingLayout.setVisibility(View.GONE);*/
             }
         });
         selected.setOnClickListener(new View.OnClickListener() {
@@ -654,11 +661,11 @@ public class MainActivity extends AppCompatActivity {
         lineItems = new ArrayList<>();
         for (Line line : rectangle.getRectanglesId()) {
             Rectangle goToRect = drawing.getRectangleById(line.getGoToId());
-            if(goToRect!=null){
-                if(checkBidirectionnel(rectangle,line.getGoToId())){
-                    lineItems.add(new LineItem("--> " + goToRect.getName(),goToRect.getUID(), R.drawable.twodirections));
-                }else {
-                    lineItems.add(new LineItem("--> " + goToRect.getName(),goToRect.getUID(), R.drawable.onedirection));
+            if (goToRect != null) {
+                if (checkBidirectionnel(rectangle, line.getGoToId())) {
+                    lineItems.add(new LineItem("--> " + goToRect.getName(), goToRect.getUID(), R.drawable.twodirections));
+                } else {
+                    lineItems.add(new LineItem("--> " + goToRect.getName(), goToRect.getUID(), R.drawable.onedirection));
                 }
             }
         }
@@ -671,23 +678,38 @@ public class MainActivity extends AppCompatActivity {
         lineAdapter.setOnRemoveClickListener(new LineAdapter.OnRemoveClickListener() {
             @Override
             public void onItemClick(int position) {
-                Toast.makeText(context,rectangle.getName() +" ,id:"+ lineItems.get(position).getUid(),Toast.LENGTH_SHORT).show();
-                drawing.deleteLine(rectangle,lineItems.get(position).getUid());
+                Toast.makeText(context, rectangle.getName() + " ,id:" + lineItems.get(position).getUid(), Toast.LENGTH_SHORT).show();
+                drawing.deleteLine(rectangle, lineItems.get(position).getUid());
                 linesDialog.dismiss();
             }
         });
     }
-    private boolean checkBidirectionnel(Rectangle rId,String UID){
+
+    private boolean checkBidirectionnel(Rectangle rId, String UID) {
         Rectangle rectangle = drawing.getRectangleById(UID);
-        if(rectangle != null){
+        if (rectangle != null) {
             for (Line line : rectangle.getRectanglesId()) {
-                if(line.getGoToId().equals(rId.getUID())){
+                if (line.getGoToId().equals(rId.getUID())) {
                     return true;
                 }
             }
         }
         return false;
     }
+
+    @Override
+    protected void onDestroy() {
+        drawing.back();
+        super.onDestroy();
+    }
+    @Override
+    protected void onStop() {
+        drawing.back();
+        Intent intent = new Intent(MainActivity.this, ProfilActivity.class);
+        startActivity(intent);
+        super.onStop();
+    }
+
     @Override
     public void onBackPressed() {
 

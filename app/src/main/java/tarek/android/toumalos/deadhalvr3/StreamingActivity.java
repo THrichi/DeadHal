@@ -25,7 +25,6 @@ public class StreamingActivity extends AppCompatActivity {
 
     private Drawing drawing;
     private Maze theMaze;
-    private float scale = 1f;
     //Firebase
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference mazebookRef;
@@ -37,8 +36,8 @@ public class StreamingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_streaming);
         drawing = (Drawing) findViewById(R.id.drawing);
         theMaze = (Maze) getIntent().getSerializableExtra("theMaze");
-        mazebookRef = db.collection(theMaze.getUserId());
-        mazeBookRefDoc = mazebookRef.document(theMaze.getName());
+        mazebookRef = db.collection("mazes");
+        mazeBookRefDoc = mazebookRef.document(theMaze.getUid());
         drawing.setTheMaze(theMaze);
         drawing.setMode(Global.STREAMING);
     }

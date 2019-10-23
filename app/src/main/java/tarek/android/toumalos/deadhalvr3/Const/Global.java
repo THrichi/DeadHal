@@ -19,5 +19,6 @@ public class Global {
     public final static String VIEWER ="VIEWER";
     public final static String NOTHING ="";
     public final static int MY_REQUEST_CODE = 7521;
+    public final static int FREEZE = 700;
 
 }
