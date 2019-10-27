@@ -31,10 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tarek.android.toumalos.deadhalvr3.Const.Global;
+import tarek.android.toumalos.deadhalvr3.Models.Astar;
 import tarek.android.toumalos.deadhalvr3.Models.Astart;
 import tarek.android.toumalos.deadhalvr3.Models.Chemin;
 import tarek.android.toumalos.deadhalvr3.Models.Line;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
+import tarek.android.toumalos.deadhalvr3.Models.Noeud;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
 import tarek.android.toumalos.deadhalvr3.Models.RectangleParser;
 import tarek.android.toumalos.deadhalvr3.R;
@@ -47,6 +49,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     private float mooveX, mooveY;
     private Rectangle selectedRect;
     private int screenWidth, screenHeight;
+    private List<Noeud> noeuds;
     private float scale = 1;
     private float scaleY = 1;
     private float scaleX = 1;
@@ -140,9 +143,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             p.setAntiAlias(true);
             canvas.drawLine(drawingMoovingLinePoint.x, drawingMoovingLinePoint.y, drawingMoovingLineX, drawingMoovingLineY, p);
         }
-        for (Rectangle rect : rectangles) {
-            drawLines(canvas, rect);
-        }
+
         if (mode.equals(Global.STREAMING) && theMaze != null) {
 
             if (theMaze.getMooveX() != 0 && theMaze.getMooveY() != 0) {
@@ -182,6 +183,17 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             if (!checkIfTouch()) {
                 reset();
                 notInTheRoad = null;
+            }
+        }
+        if(mode.equals(Global.DRAW_AUTO)){
+            if(noeuds!=null){
+                for (Noeud noeud: noeuds) {
+                    drawPathLines(canvas,noeud.getParent(),noeud.getRectangle());
+                }
+            }
+        }else{
+            for (Rectangle rect : rectangles) {
+                drawLines(canvas, rect);
             }
         }
         canvas.restore();
@@ -246,6 +258,22 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                 Point stopPoint = getLinePoint(idRect.getRectangle(), line.getDirection_second());
                 canvas.drawLine(startPoint.x, startPoint.y, stopPoint.x, stopPoint.y, rectangle.getLinePaint());
                 drawArrow(stopPoint.x, stopPoint.y, canvas, rectangle.getLinePaint().getColor());
+            }
+        }
+    }
+
+    private void drawPathLines(Canvas canvas, Rectangle A, Rectangle B) {
+        for (Line line : A.getRectanglesId()) {
+            Rectangle idRect = getRectangleById(line.getGoToId());
+            if (idRect != null) {
+                if(idRect.equals(B)){
+                    Point startPoint = getLinePoint(A.getRectangle(), line.getDirection_first());
+                    Point stopPoint = getLinePoint(idRect.getRectangle(), line.getDirection_second());
+                    A.getLinePaint().setColor(theMaze.getLineDirectionColor());
+                    canvas.drawLine(startPoint.x, startPoint.y, stopPoint.x, stopPoint.y, A.getLinePaint());
+                    drawArrow(stopPoint.x, stopPoint.y, canvas, A.getLinePaint().getColor());
+                }
+
             }
         }
     }
@@ -987,18 +1015,31 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return null;
     }
 
-    public void calculerLeChemin(Rectangle start) {
-        Rectangle end = getRectangleByName("Toto8");
-        astart = new Astart(rectangles, start, end);
-        Log.d(Global.TAG, "rectangles.get(0): " + start.getName());
-        Log.d(Global.TAG, "rectangles.get(2): " + end.getName());
-        astart.getAllWays(start);
-        Log.d(Global.TAG, "astar : " + astart.toString());
-        Log.d(Global.TAG, "getMeilleurChemin : " + getMeilleurChemin().toString());
+    /* public void calculerLeChemin(Rectangle start) {
+         Rectangle end = getRectangleByName("Toto8");
+         astart = new Astart(rectangles, start, end);
+         Log.d(Global.TAG, "rectangles.get(0): " + start.getName());
+         Log.d(Global.TAG, "rectangles.get(2): " + end.getName());
+         astart.getAllWays(start);
+         Log.d(Global.TAG, "astar : " + astart.toString());
+         Log.d(Global.TAG, "getMeilleurChemin : " + getMeilleurChemin().toString());
 
+     }*/
+    public void calculerLeChemin(Rectangle start,Rectangle end) {
+        Astar astar = new Astar(this.rectangles, start, end);
+        noeuds = astar.calcule();
+        DrawPath();
     }
 
-    private Chemin getMeilleurChemin() {
+    private void DrawPath() {
+        mode = Global.DRAW_AUTO;
+        for (Noeud noeud : noeuds) {
+            noeud.getRectangle().setColor(theMaze.getDirectionColor());
+            noeud.getParent().setColor(theMaze.getDirectionColor());
+        }
+        postInvalidate();
+    }
+    /*private Chemin getMeilleurChemin() {
         double min = Double.MAX_VALUE;
         Chemin resut = null;
         for (Chemin chemin : astart.getChemins()) {
@@ -1010,9 +1051,9 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             }
         }
         return resut;
-    }
+    }*/
 
-    private double calculeDistance(Chemin chemin) {
+    /*private double calculeDistance(Chemin chemin) {
         double result = 0;
         List<Rectangle> tmp = chemin.getChemins();
         for (int i = 0; i < tmp.size() - 2; i++) {
@@ -1028,7 +1069,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         point.x = (int)(rectangle.getRectangle().left + rectangle.getRectangle().right )/ 2;
         point.y = (int)(rectangle.getRectangle().top + rectangle.getRectangle().bottom )/ 2;
         return point;
-    }
+    }*/
 
     private void drawFigurine(Canvas canvas, float X, float Y) {
         Bitmap b = BitmapFactory.decodeResource(getResources(), R.mipmap.minotoror);
@@ -1072,6 +1113,10 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             rectangles.add(menuItemSelected);
             postInvalidate();
         }
+    }
+
+    public List<Rectangle> getRectangles() {
+        return rectangles;
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

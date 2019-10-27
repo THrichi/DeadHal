@@ -37,12 +37,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -52,6 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import tarek.android.toumalos.deadhalvr3.Adapter.AstarAdapter;
 import tarek.android.toumalos.deadhalvr3.Adapter.LineAdapter;
 import tarek.android.toumalos.deadhalvr3.Adapter.OptionAdapter;
 import tarek.android.toumalos.deadhalvr3.Const.Global;
@@ -84,10 +82,12 @@ public class MainActivity extends AppCompatActivity {
     private int changeMode;
     private String mazeId;
     private Dialog linesDialog;
+    private Dialog astarDialog;
     private Dialog optionsDialog;
     private Dialog changeDialog;
     private Dialog infosDialog;
     private int choosenColor;
+    private EditText astarEditText;
 
     //
 
@@ -107,6 +107,10 @@ public class MainActivity extends AppCompatActivity {
     private List<OptionItem> optionItems;
 
 
+    private RecyclerView astarRecycleView;
+    private AstarAdapter astarAdapter;
+    private RecyclerView.LayoutManager astarLayoutManager;
+    private List<String> astarItems;
     //Firestore
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -661,14 +665,26 @@ public class MainActivity extends AppCompatActivity {
             case R.id.auto:
                 Rectangle start = drawing.getMenuItemSelected();
                 if (start != null) {
-                    drawing.calculerLeChemin(start);
+                    astarDialog.show();
+                    setUpAstarRecycleView(drawing.getRectangles(), start);
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
+
                 return true;
             default:
                 return super.onContextItemSelected(item);
         }
+    }
+
+    private List<Rectangle> getAstarRectangles(List<Rectangle> rectangles, String name) {
+        List<Rectangle> result = new ArrayList<>();
+        for (Rectangle rect : rectangles) {
+            if (rect.getName().toLowerCase().contains(name.toLowerCase())) {
+                result.add(rect);
+            }
+        }
+        return result;
     }
 
     private void gone() {
@@ -684,6 +700,10 @@ public class MainActivity extends AppCompatActivity {
         linesDialog.setContentView(R.layout.activity_line_dialog);
         linesDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
+
+        astarDialog = new Dialog(context);
+        astarDialog.setContentView(R.layout.activity_astar_dialog);
+        astarDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         optionsDialog = new Dialog(context);
         optionsDialog.setContentView(R.layout.activity_options_dialog);
@@ -711,6 +731,8 @@ public class MainActivity extends AppCompatActivity {
         nameInfos = (TextView) infosDialog.findViewById(R.id.name);
 
         optionRecycleView = (RecyclerView) optionsDialog.findViewById(R.id.optionsRecycleView);
+        astarRecycleView = (RecyclerView) astarDialog.findViewById(R.id.astarRecycleView);
+        astarEditText = (EditText) astarDialog.findViewById(R.id.astarEditText);
 
         changeOk = (ImageView) changeDialog.findViewById(R.id.ok);
         changeCancel = (ImageView) changeDialog.findViewById(R.id.cancel);
@@ -796,6 +818,25 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        astarEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (drawing.getMenuItemSelected() != null)
+                    setUpAstarRecycleView(getAstarRectangles(drawing.getRectangles(), s.toString()), drawing.getMenuItemSelected());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
     }
 
     private void saveMazeChanges() {
@@ -913,6 +954,29 @@ public class MainActivity extends AppCompatActivity {
                 prototypeDraw.setColor(choosenColor);
                 changeDialog.show();
                 optionsDialog.dismiss();
+            }
+        });
+    }
+
+    private void setUpAstarRecycleView(List<Rectangle> rectangles, final Rectangle start) {
+        astarItems = new ArrayList<>();
+        for (Rectangle rectangle : rectangles) {
+            if (!rectangle.equals(start))
+                astarItems.add(rectangle.getName());
+        }
+        astarRecycleView.setHasFixedSize(true);
+        astarLayoutManager = new LinearLayoutManager(this);
+        astarAdapter = new AstarAdapter(astarItems);
+        astarRecycleView.setLayoutManager(astarLayoutManager);
+        astarRecycleView.setAdapter(astarAdapter);
+
+        astarAdapter.setOnClickListener(new AstarAdapter.OnClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                Rectangle end = drawing.getRectangleByName(astarItems.get(position));
+                drawing.calculerLeChemin(start, end);
+                astarDialog.dismiss();
+                astarEditText.setText("");
             }
         });
     }
