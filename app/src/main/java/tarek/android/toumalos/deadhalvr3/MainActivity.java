@@ -7,18 +7,25 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -33,7 +40,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -44,35 +53,59 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import tarek.android.toumalos.deadhalvr3.Adapter.LineAdapter;
+import tarek.android.toumalos.deadhalvr3.Adapter.OptionAdapter;
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Draw.Drawing;
+import tarek.android.toumalos.deadhalvr3.Draw.PrototypeDraw;
 import tarek.android.toumalos.deadhalvr3.Models.Line;
 import tarek.android.toumalos.deadhalvr3.Models.LineItem;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
+import tarek.android.toumalos.deadhalvr3.Models.OptionItem;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
 import tarek.android.toumalos.deadhalvr3.Models.RectangleParser;
 
 public class MainActivity extends AppCompatActivity {
 
     private Drawing drawing;
-    private CircleImageView add, move, resize, remove, backToMenu, cancel, valideAdd, cancelRotate, cancelAdd, drow, options, save, back, relation, selected, rotate, changeInteret, changeName;
+    private PrototypeDraw prototypeDraw;
+    private EditText changeEditText;
+    private LinearLayout changeLayout, changeEditLayout;
+    private CircleImageView colorPicker, changePlus, changeMoins;
+    private ImageView changeOk, changeCancel;
+    private CircleImageView add, move, resize, remove, backToMenu, valideAdd, cancelRotate, cancelAdd, drow, options, save, back, refresh, relation, selected, rotate, changeInteret, changeName;
     private EditText rectW, rectH, rectName, changeNameEdit, changeInteretEdit;
     private TextView rotationEditText;
-    private SeekBar seekZoom, seekY, seekX, seekRotation;
-    private LinearLayout buttonsLayout, seekLayout, addingLayout, buttonsPrincipaleLayout, RotationLayout, nametLayout, interetLayout;
+    private SeekBar SeekRayonX, SeekRayonY;
+    private LinearLayout buttonsLayout, addingLayout, buttonsPrincipaleLayout, RayonLayout, nametLayout, interetLayout;
     private Maze theMaze;
     private int left = 0;
     private int top = 0;
     private Context context;
-    private int oldYprogress = -1;
-    private int oldXprogress = -1;
+    private int changeMode;
     private String mazeId;
     private Dialog linesDialog;
+    private Dialog optionsDialog;
+    private Dialog changeDialog;
+    private Dialog infosDialog;
+    private int choosenColor;
+
+    //
+
+    private LinearLayout layoutInteretInfos;
+    private TextView interetInfos;
+    private TextView nameInfos;
+    private TextView gotoInfos;
     //RecycleView
     private RecyclerView lineRecycleView;
     private LineAdapter lineAdapter;
     private RecyclerView.LayoutManager layoutManager;
     private List<LineItem> lineItems;
+
+    private RecyclerView optionRecycleView;
+    private OptionAdapter optionAdapter;
+    private RecyclerView.LayoutManager optionLayoutManager;
+    private List<OptionItem> optionItems;
+
 
     //Firestore
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -104,45 +137,34 @@ public class MainActivity extends AppCompatActivity {
         drow = (CircleImageView) findViewById(R.id.Drow);
         options = (CircleImageView) findViewById(R.id.Options);
         back = (CircleImageView) findViewById(R.id.Back);
+        refresh = (CircleImageView) findViewById(R.id.Refresh);
         save = (CircleImageView) findViewById(R.id.Save);
-        cancel = (CircleImageView) findViewById(R.id.cancel);
         cancelAdd = (CircleImageView) findViewById(R.id.cancelAdd);
         valideAdd = (CircleImageView) findViewById(R.id.valideAdd);
         cancelRotate = (CircleImageView) findViewById(R.id.cancelRotate);
-        seekZoom = (SeekBar) findViewById(R.id.SeekZoom);
-        seekY = (SeekBar) findViewById(R.id.SeekX);
-        seekX = (SeekBar) findViewById(R.id.SeekY);
-        seekRotation = (SeekBar) findViewById(R.id.SeekRotation);
+        SeekRayonX = (SeekBar) findViewById(R.id.SeekRayonX);
+        SeekRayonY = (SeekBar) findViewById(R.id.SeekRayonY);
         buttonsLayout = (LinearLayout) findViewById(R.id.buttonsLayout);
-        seekLayout = (LinearLayout) findViewById(R.id.SeekLayout);
         addingLayout = (LinearLayout) findViewById(R.id.addingLayout);
         nametLayout = (LinearLayout) findViewById(R.id.NametLayout);
         interetLayout = (LinearLayout) findViewById(R.id.InteretLayout);
         buttonsPrincipaleLayout = (LinearLayout) findViewById(R.id.buttonsPrincipaleLayout);
-        RotationLayout = (LinearLayout) findViewById(R.id.RotationLayout);
+        RayonLayout = (LinearLayout) findViewById(R.id.RayonLayout);
         rectH = (EditText) findViewById(R.id.rectH);
         rectW = (EditText) findViewById(R.id.rectW);
         rectName = (EditText) findViewById(R.id.rectName);
         changeNameEdit = (EditText) findViewById(R.id.changeNameEdit);
         changeInteretEdit = (EditText) findViewById(R.id.changeInteretEdit);
-        rotationEditText = (TextView) findViewById(R.id.rotationEditText);
 
         registerForContextMenu(drawing);
 
-        seekZoom.setMax(20);
-        seekZoom.setProgress(10);
-        seekY.setProgress(0);
-        seekX.setProgress(0);
-        seekRotation.setProgress(0);
-        seekRotation.setMax(360);
 
         drow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
                 buttonsPrincipaleLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
-                seekLayout.setVisibility(View.GONE);
+                RayonLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
             }
@@ -163,12 +185,18 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("MazeId", theMaze.getUid());
+                startActivity(intent);
+            }
+        });
         options.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //drawing.calculerLeChemin();
-                //drawing.scale();
+                optionsDialog.show();
             }
         });
         add.setOnClickListener(new View.OnClickListener() {
@@ -176,8 +204,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 buttonsPrincipaleLayout.setVisibility(View.GONE);
                 buttonsLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
-                seekLayout.setVisibility(View.GONE);
+                RayonLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.VISIBLE);
                 buttonColors(Global.ADD);
             }
@@ -228,8 +255,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
                 buttonsPrincipaleLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
-                seekLayout.setVisibility(View.GONE);
+                RayonLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
             }
@@ -239,8 +265,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 buttonsLayout.setVisibility(View.VISIBLE);
                 buttonsPrincipaleLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
-                seekLayout.setVisibility(View.GONE);
+                RayonLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
             }
@@ -248,20 +273,37 @@ public class MainActivity extends AppCompatActivity {
         valideAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                drawing.setMode(Global.ADD);
-                RectangleParser parser = new RectangleParser(0, 0,
-                        Float.parseFloat(rectW.getText().toString()),
-                        Float.parseFloat(rectH.getText().toString()),
-                        rectName.getText().toString());
-                theMaze.getRectangles().add(parser);
-                drawing.setTheMaze(theMaze);
+                if (drawing.checkName(rectName.getText().toString())) {
+                    drawing.setMode(Global.ADD);
+                    RectangleParser parser = new RectangleParser(0, 0,
+                            Float.parseFloat(rectW.getText().toString()),
+                            Float.parseFloat(rectH.getText().toString()),
+                            rectName.getText().toString(),
+                            theMaze.getSelectedColor(),
+                            theMaze.getNormalColor(),
+                            theMaze.getBackgroundColor(),
+                            theMaze.getLineDirectionColor(),
+                            theMaze.getLineColor(),
+                            theMaze.getDirectionColor(),
+                            theMaze.getInteretColor(),
+                            theMaze.getTextColor(),
+                            theMaze.getTextInteretColor(),
+                            theMaze.getTextSize(),
+                            theMaze.getTextInteretSize(),
+                            theMaze.getLineLargeur(),
+                            theMaze.getTextStroke());
+                    theMaze.getRectangles().add(parser);
+                    drawing.setTheMaze(theMaze);
 
-                buttonsLayout.setVisibility(View.VISIBLE);
-                seekLayout.setVisibility(View.GONE);
-                buttonsPrincipaleLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
-                addingLayout.setVisibility(View.GONE);
-                drawing.setMode(Global.NOTHING);
+                    buttonsLayout.setVisibility(View.VISIBLE);
+                    buttonsPrincipaleLayout.setVisibility(View.GONE);
+                    RayonLayout.setVisibility(View.GONE);
+                    addingLayout.setVisibility(View.GONE);
+                    drawing.setMode(Global.NOTHING);
+                } else {
+                    Toast.makeText(context, "nom existe déjà !", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
         move.setOnClickListener(new View.OnClickListener() {
@@ -306,22 +348,10 @@ public class MainActivity extends AppCompatActivity {
 
                 buttonsLayout.setVisibility(View.GONE);
                 buttonsPrincipaleLayout.setVisibility(View.VISIBLE);
-                seekLayout.setVisibility(View.GONE);
+                RayonLayout.setVisibility(View.GONE);
                 addingLayout.setVisibility(View.GONE);
-                RotationLayout.setVisibility(View.GONE);
                 drawing.setMode(Global.NOTHING);
                 drawing.postInvalidate();
-            }
-        });
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                buttonsLayout.setVisibility(View.VISIBLE);
-                RotationLayout.setVisibility(View.GONE);
-                seekLayout.setVisibility(View.GONE);
-                buttonsPrincipaleLayout.setVisibility(View.GONE);
-                addingLayout.setVisibility(View.GONE);
-                drawing.setMode(Global.NOTHING);
             }
         });
         changeInteret.setOnClickListener(new View.OnClickListener() {
@@ -345,10 +375,10 @@ public class MainActivity extends AppCompatActivity {
                 nametLayout.setVisibility(View.GONE);
             }
         });
-        seekZoom.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        SeekRayonX.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                drawing.setScale(ZoomValue(seekZoom.getProgress()));
+                drawing.setRadiusX(SeekRayonX.getProgress());
             }
 
             @Override
@@ -361,15 +391,10 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        seekY.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        SeekRayonY.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (oldYprogress > seekY.getProgress()) {
-                    drawing.setScaleY(-100);
-                } else {
-                    drawing.setScaleY(+100);
-                }
-                oldYprogress = seekY.getProgress();
+                drawing.setRadiusY(SeekRayonY.getProgress());
             }
 
             @Override
@@ -382,45 +407,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        seekX.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (oldXprogress > seekX.getProgress()) {
-                    drawing.setScaleX(-300);
-                } else {
-                    drawing.setScaleX(+300);
-                }
-                oldXprogress = seekX.getProgress();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-        seekRotation.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                rotationEditText.setText(progress + "°");
-                drawing.rotate(drawing.getSelectedRectangle(), progress);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
+        SeekRayonY.setMax(200);
+        SeekRayonX.setMax(200);
         initDialog();
         loadMaze();
     }
@@ -457,6 +445,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         theMaze = documentSnapshot.toObject(Maze.class);
                         drawing.setTheMaze(theMaze);
+                        setUpOptionsRecycleView();
                     }
                 });
     }
@@ -598,8 +587,7 @@ public class MainActivity extends AppCompatActivity {
                     interetLayout.setVisibility(View.GONE);
                     addingLayout.setVisibility(View.GONE);
                     buttonsPrincipaleLayout.setVisibility(View.GONE);
-                    seekLayout.setVisibility(View.GONE);
-                    RotationLayout.setVisibility(View.GONE);
+                    RayonLayout.setVisibility(View.GONE);
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
@@ -613,8 +601,7 @@ public class MainActivity extends AppCompatActivity {
                     buttonsLayout.setVisibility(View.GONE);
                     addingLayout.setVisibility(View.GONE);
                     buttonsPrincipaleLayout.setVisibility(View.GONE);
-                    seekLayout.setVisibility(View.GONE);
-                    RotationLayout.setVisibility(View.GONE);
+                    RayonLayout.setVisibility(View.GONE);
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
@@ -631,15 +618,50 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
                 return true;
+            case R.id.infos:
+                Rectangle infosRectangle = drawing.getMenuItemSelected();
+                if (infosRectangle != null) {
+                    infosDialog.show();
+                    nameInfos.setText(infosRectangle.getName());
+                    if (infosRectangle.getInteret().equals("")) {
+                        layoutInteretInfos.setVisibility(View.GONE);
+                    } else {
+                        layoutInteretInfos.setVisibility(View.VISIBLE);
+                        interetInfos.setText(infosRectangle.getInteret());
+                    }
+                    gotoInfos.setText(drawing.getGoTo(infosRectangle));
+                } else {
+                    Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
+                }
+                return true;
 
-            case R.id.gotorect:
-                Rectangle rectangle = drawing.getMenuItemSelected();
-                if (rectangle != null) {
+            case R.id.rayon:
+                Rectangle rectangleRayon = drawing.getMenuItemSelected();
+                if (rectangleRayon != null) {
+                    RayonLayout.setVisibility(View.VISIBLE);
+                    gone();
+                    SeekRayonX.setProgress(rectangleRayon.getRadiusX());
+                    SeekRayonY.setProgress(rectangleRayon.getRadiusY());
+                } else {
+                    Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            case R.id.manuel:
+                Rectangle rectangleAuto = drawing.getMenuItemSelected();
+                if (rectangleAuto != null) {
                     drawing.setMode(Global.MINOTORE);
                     buttonColors(Global.MINOTORE);
                     drawing.resetMonotouch();
-                    drawing.setMooveX((rectangle.getRectangle().left + rectangle.getRectangle().right) / 2);
-                    drawing.setMooveY((rectangle.getRectangle().top + rectangle.getRectangle().bottom) / 2);
+                    drawing.setMooveX((rectangleAuto.getRectangle().left + rectangleAuto.getRectangle().right) / 2);
+                    drawing.setMooveY((rectangleAuto.getRectangle().top + rectangleAuto.getRectangle().bottom) / 2);
+                } else {
+                    Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            case R.id.auto:
+                Rectangle start = drawing.getMenuItemSelected();
+                if (start != null) {
+                    drawing.calculerLeChemin(start);
                 } else {
                     Toast.makeText(context, "Aucun élément n'a été sélectionné", Toast.LENGTH_SHORT).show();
                 }
@@ -649,12 +671,175 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void gone() {
+        buttonsLayout.setVisibility(View.GONE);
+        addingLayout.setVisibility(View.GONE);
+        buttonsPrincipaleLayout.setVisibility(View.GONE);
+        nametLayout.setVisibility(View.GONE);
+        interetLayout.setVisibility(View.GONE);
+    }
+
     private void initDialog() {
         linesDialog = new Dialog(context);
         linesDialog.setContentView(R.layout.activity_line_dialog);
         linesDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
+
+        optionsDialog = new Dialog(context);
+        optionsDialog.setContentView(R.layout.activity_options_dialog);
+        optionsDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+
+        changeDialog = new Dialog(context);
+        changeDialog.setContentView(R.layout.activity_change_dialog);
+        changeDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        changeDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                optionsDialog.show();
+            }
+        });
+        infosDialog = new Dialog(context);
+        infosDialog.setContentView(R.layout.activity_rect_details_dialog);
+        infosDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
         lineRecycleView = (RecyclerView) linesDialog.findViewById(R.id.lineRecycleView);
+
+        layoutInteretInfos = (LinearLayout) infosDialog.findViewById(R.id.layoutInteret);
+        interetInfos = (TextView) infosDialog.findViewById(R.id.interet);
+        gotoInfos = (TextView) infosDialog.findViewById(R.id.gotorects);
+        nameInfos = (TextView) infosDialog.findViewById(R.id.name);
+
+        optionRecycleView = (RecyclerView) optionsDialog.findViewById(R.id.optionsRecycleView);
+
+        changeOk = (ImageView) changeDialog.findViewById(R.id.ok);
+        changeCancel = (ImageView) changeDialog.findViewById(R.id.cancel);
+        colorPicker = (CircleImageView) changeDialog.findViewById(R.id.colorPicker);
+        prototypeDraw = (PrototypeDraw) changeDialog.findViewById(R.id.prototypeDraw);
+
+        changePlus = (CircleImageView) changeDialog.findViewById(R.id.changePlus);
+        changeMoins = (CircleImageView) changeDialog.findViewById(R.id.changeMoins);
+        changeEditText = (EditText) changeDialog.findViewById(R.id.changeEditText);
+        changeLayout = (LinearLayout) changeDialog.findViewById(R.id.changeLayout);
+        changeEditLayout = (LinearLayout) changeDialog.findViewById(R.id.changeEditLayout);
+
+        changeOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveMazeChanges();
+            }
+        });
+
+        changeCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeDialog.dismiss();
+                optionsDialog.show();
+            }
+        });
+
+        colorPicker.setDrawingCacheEnabled(true);
+        colorPicker.buildDrawingCache(true);
+
+        colorPicker.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_UP) {
+                    Bitmap bitmap = colorPicker.getDrawingCache();
+                    try {
+                        choosenColor = bitmap.getPixel((int) event.getX(), (int) event.getY());
+                        prototypeDraw.setColor(choosenColor);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return true;
+            }
+        });
+
+        changePlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (changeEditText.getText().toString().length() > 0) {
+                    changeEditText.setText((Integer.parseInt(changeEditText.getText().toString()) + 1) + "");
+                } else {
+                    changeEditText.setText("0");
+                }
+            }
+        });
+        changeMoins.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (changeEditText.getText().toString().length() > 0) {
+                    changeEditText.setText((Integer.parseInt(changeEditText.getText().toString()) - 1) + "");
+                } else {
+                    changeEditText.setText("0");
+                }
+            }
+        });
+
+        changeEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    prototypeDraw.setText(Integer.parseInt(s.toString()));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+
+    private void saveMazeChanges() {
+        switch (changeMode) {
+            case Global.PICK_BG_CANVAS:
+                theMaze.setBackgroundColor(choosenColor);
+                break;
+            case Global.PICK_RECTANGLE_PRINCIPALE:
+                theMaze.setNormalColor(choosenColor);
+                break;
+            case Global.PICK_RECTANGLE_SELECTION:
+                theMaze.setSelectedColor(choosenColor);
+                break;
+            case Global.PICK_RECTANGLE_DIRECTION:
+                theMaze.setDirectionColor(choosenColor);
+                break;
+            case Global.PICK_LINE_DIRECTION:
+                theMaze.setLineDirectionColor(choosenColor);
+                break;
+            case Global.PICK_LINE:
+                theMaze.setLineColor(choosenColor);
+                break;
+            case Global.PICK_COLOR_INTERET:
+                theMaze.setInteretColor(choosenColor);
+                break;
+            case Global.PICK_COLOR_TEXT:
+                theMaze.setTextColor(choosenColor);
+                break;
+            case Global.PICK_COLOR_TEXT_INTERET:
+                theMaze.setTextInteretColor(choosenColor);
+                break;
+            case Global.PICK_TEXT_SIZE:
+                theMaze.setTextSize(Integer.parseInt(changeEditText.getText().toString()));
+                theMaze.setTextInteretSize(Integer.parseInt(changeEditText.getText().toString()) / 2);
+                break;
+            case Global.PICK_STROKE_LINE:
+                theMaze.setLineLargeur(Integer.parseInt(changeEditText.getText().toString()));
+                break;
+        }
+        drawing.setTheMaze(theMaze);
+        drawing.postInvalidate();
+        setUpOptionsRecycleView();
+        optionsDialog.show();
+        changeDialog.dismiss();
     }
 
     private void setUpRecycleView(final Rectangle rectangle) {
@@ -685,6 +870,76 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void setUpOptionsRecycleView() {
+        optionItems = new ArrayList<>();
+
+        optionItems.add(new OptionItem("Couleur Principale", theMaze.getNormalColor(), Global.PICK_RECTANGLE_PRINCIPALE));
+        optionItems.add(new OptionItem("Couleur Selection", theMaze.getSelectedColor(), Global.PICK_RECTANGLE_SELECTION));
+        optionItems.add(new OptionItem("Background", theMaze.getBackgroundColor(), Global.PICK_BG_CANVAS));
+        optionItems.add(new OptionItem("Ligne Direction", theMaze.getLineDirectionColor(), Global.PICK_LINE_DIRECTION));
+        optionItems.add(new OptionItem("Couleur Ligne", theMaze.getLineColor(), Global.PICK_LINE));
+        optionItems.add(new OptionItem("Couleur chemin", theMaze.getDirectionColor(), Global.PICK_RECTANGLE_DIRECTION));
+        optionItems.add(new OptionItem("Couleur Interet", theMaze.getInteretColor(), Global.PICK_COLOR_INTERET));
+        optionItems.add(new OptionItem("Couleur Text", theMaze.getTextColor(), Global.PICK_COLOR_TEXT));
+        optionItems.add(new OptionItem("Couleur Text Interet", theMaze.getTextInteretColor(), Global.PICK_COLOR_TEXT_INTERET));
+        optionItems.add(new OptionItem("Text Size", theMaze.getTextSize(), Global.PICK_TEXT_SIZE));
+        optionItems.add(new OptionItem("Ligne largeur", theMaze.getLineLargeur(), Global.PICK_STROKE_LINE));
+
+        optionRecycleView.setHasFixedSize(true);
+        optionLayoutManager = new LinearLayoutManager(this);
+        optionAdapter = new OptionAdapter(optionItems);
+        optionRecycleView.setLayoutManager(optionLayoutManager);
+        optionRecycleView.setAdapter(optionAdapter);
+
+        optionAdapter.setOnClickListener(new OptionAdapter.OnClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                changeMode = optionItems.get(position).getChoice();
+                choosenColor = optionItems.get(position).getOldColor();
+                prototypeDraw.setMode(optionItems.get(position).getChoice());
+                setProtitypeCurrentValues();
+                if (optionItems.get(position).getChoice() == Global.PICK_TEXT_SIZE || optionItems.get(position).getChoice() == Global.PICK_STROKE_LINE) {
+                    changeEditLayout.setVisibility(View.VISIBLE);
+                    changeEditText.setVisibility(View.VISIBLE);
+                    colorPicker.setVisibility(View.GONE);
+                    changeLayout.setBackground(ContextCompat.getDrawable(context, R.mipmap.rect3));
+                    initEditText(optionItems.get(position).getChoice());
+                } else {
+                    changeEditLayout.setVisibility(View.GONE);
+                    changeEditText.setVisibility(View.GONE);
+                    colorPicker.setVisibility(View.VISIBLE);
+                    changeLayout.setBackgroundColor(Color.TRANSPARENT);
+                }
+                prototypeDraw.setColor(choosenColor);
+                changeDialog.show();
+                optionsDialog.dismiss();
+            }
+        });
+    }
+
+    private void initEditText(int action) {
+        switch (action) {
+            case Global.PICK_TEXT_SIZE:
+                changeEditText.setText(theMaze.getTextSize() + "");
+                break;
+            case Global.PICK_STROKE_LINE:
+                changeEditText.setText(theMaze.getLineLargeur() + "");
+                break;
+        }
+    }
+
+
+    private void setProtitypeCurrentValues() {
+        prototypeDraw.setCurrentBgColor(theMaze.getBackgroundColor());
+        prototypeDraw.setCurrentRectColor(theMaze.getNormalColor());
+        prototypeDraw.setCurrentTextColor(theMaze.getTextColor());
+        prototypeDraw.setCurrentTextStroke(theMaze.getTextStroke());
+        prototypeDraw.setCurrentTextSize(theMaze.getTextSize());
+        prototypeDraw.setCurrentLineStroke(theMaze.getLineLargeur());
+        prototypeDraw.setCurrentRectInteretColor(theMaze.getInteretColor());
+        prototypeDraw.setCurrentLineColor(theMaze.getLineColor());
+    }
+
     private boolean checkBidirectionnel(Rectangle rId, String UID) {
         Rectangle rectangle = drawing.getRectangleById(UID);
         if (rectangle != null) {
@@ -702,11 +957,10 @@ public class MainActivity extends AppCompatActivity {
         drawing.back();
         super.onDestroy();
     }
+
     @Override
     protected void onStop() {
         drawing.back();
-        Intent intent = new Intent(MainActivity.this, ProfilActivity.class);
-        startActivity(intent);
         super.onStop();
     }
 

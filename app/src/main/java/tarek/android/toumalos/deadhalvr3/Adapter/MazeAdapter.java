@@ -81,7 +81,8 @@ public class MazeAdapter extends RecyclerView.Adapter<MazeAdapter.MazeHolder> {
 
         if (isAdmin(currentItem.getUid())) {
             if (currentItem.isOnLine()) {
-                holder.open.setVisibility(View.GONE);
+                //holder.open.setVisibility(View.GONE);
+                holder.open.setImageResource(R.drawable.ic_kick);
                 holder.delete.setVisibility(View.GONE);
                 holder.view.setVisibility(View.VISIBLE);
             } else {

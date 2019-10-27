@@ -37,6 +37,12 @@
             android:src="@drawable/ic_settings_applications_black_24dp" />
 
         <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_refresh_black_24dp" />
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/Save"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -119,69 +125,6 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/SeekLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="5dp"
-            android:text="Y"
-            android:textAlignment="center" />
-
-        <SeekBar
-            android:id="@+id/SeekZoom"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="5dp"
-            android:text="X"
-            android:textAlignment="center" />
-
-        <SeekBar
-            android:id="@+id/SeekY"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="5dp"
-            android:text="Zoom"
-            android:textAlignment="center" />
-
-        <SeekBar
-            android:id="@+id/SeekX"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:outlineAmbientShadowColor="#03A9F4"
-            android:outlineSpotShadowColor="#03A9F4" />
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:src="@drawable/ic_cancel_black_24dp" />
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/addingLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -236,36 +179,35 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/RotationLayout"
+        android:id="@+id/RayonLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center"
         android:visibility="gone">
 
         <SeekBar
-            android:id="@+id/SeekRotation"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:id="@+id/SeekRayonX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:outlineAmbientShadowColor="#03A9F4"
             android:outlineSpotShadowColor="#03A9F4" />
 
-        <TextView
-            android:id="@+id/rotationEditText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:fontFamily="monospace"
-            android:text="360°"
-            android:textAlignment="center"
-            android:textColor="#000000"
-            android:textSize="22dp" />
+        <SeekBar
+            android:id="@+id/SeekRayonY"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:outlineAmbientShadowColor="#03A9F4"
+            android:outlineSpotShadowColor="#03A9F4" />
+
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/cancelRotate"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
             android:src="@drawable/ic_menu_black_24dp" />
     </LinearLayout>
 

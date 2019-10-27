@@ -18,12 +18,27 @@ public class RectangleParser implements Serializable {
     private String name;
     private String interet;
     private List<Line> rectanglesId;
+    private int selectedColor;
+    private int normalColor;
+    private int backgroundColor;
+    private int lineDirectionColor;
+    private int lineColor;
+    private int directionColor;
+    private int interetColor;
+    private int textColor;
+    private int textInteretColor;
+    private int textSize;
+    private int textInteretSize;
+    private int lineLargeur;
+    private int textStroke;
+    private int radiusX;
+    private int radiusY;
 
     public RectangleParser() {
         this.rectanglesId = new ArrayList<>();
     }
 
-    public RectangleParser(float left, float top, float right,float bottom, String name) {
+    /*public RectangleParser(float left, float top, float right,float bottom, String name) {
 
         UUID uuid = UUID.randomUUID();
         this.id = uuid.toString();
@@ -53,6 +68,185 @@ public class RectangleParser implements Serializable {
         this.name = name;
         this.interet = interet;
         this.rectanglesId = rectanglesId;
+    }*/
+
+    public RectangleParser(String id, float left, float top, float right, float bottom,float leftInteret, float topInteret, float rightInteret, float bottomInteret, String name,String interet,List<Line> rectanglesId ,int selectedColor, int normalColor, int backgroundColor, int lineDirectionColor, int lineColor, int directionColor, int interetColor, int textColor, int textInteretColor, int textSize, int textInteretSize, int lineLargeur, int textStroke,int radiusX,int radiusY) {
+        this.id = id;
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+        this.leftInteret = leftInteret;
+        this.topInteret = topInteret;
+        this.rightInteret = rightInteret;
+        this.bottomInteret = bottomInteret;
+        this.name = name;
+        this.interet = interet;
+        this.rectanglesId = rectanglesId;
+        this.selectedColor = selectedColor;
+        this.normalColor = normalColor;
+        this.backgroundColor = backgroundColor;
+        this.lineDirectionColor = lineDirectionColor;
+        this.lineColor = lineColor;
+        this.directionColor = directionColor;
+        this.interetColor = interetColor;
+        this.textColor = textColor;
+        this.textInteretColor = textInteretColor;
+        this.textSize = textSize;
+        this.textInteretSize = textInteretSize;
+        this.lineLargeur = lineLargeur;
+        this.textStroke = textStroke;
+        this.radiusX = radiusX;
+        this.radiusY = radiusY;
+    }
+    public RectangleParser(float left, float top, float right, float bottom , String name, int selectedColor, int normalColor, int backgroundColor, int lineDirectionColor, int lineColor, int directionColor, int interetColor, int textColor, int textInteretColor, int textSize, int textInteretSize, int lineLargeur, int textStroke) {
+        UUID uuid = UUID.randomUUID();
+        this.id = uuid.toString();
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+        this.leftInteret = getRecInteretLeft();
+        this.topInteret = getRecInteretTop();
+        this.rightInteret = getRecInteretRight();
+        this.bottomInteret = getRecInteretBottom();
+        this.name = name;
+        this.interet = "";
+        this.rectanglesId = new ArrayList<>();
+        this.selectedColor = selectedColor;
+        this.normalColor = normalColor;
+        this.backgroundColor = backgroundColor;
+        this.lineDirectionColor = lineDirectionColor;
+        this.lineColor = lineColor;
+        this.directionColor = directionColor;
+        this.interetColor = interetColor;
+        this.textColor = textColor;
+        this.textInteretColor = textInteretColor;
+        this.textSize = textSize;
+        this.textInteretSize = textInteretSize;
+        this.lineLargeur = lineLargeur;
+        this.textStroke = textStroke;
+        this.radiusX = 0;
+        this.radiusY = 0;
+    }
+    public int getSelectedColor() {
+        return selectedColor;
+    }
+
+    public int getRadiusX() {
+        return radiusX;
+    }
+
+    public void setRadiusX(int radiusX) {
+        this.radiusX = radiusX;
+    }
+
+    public int getRadiusY() {
+        return radiusY;
+    }
+
+    public void setRadiusY(int radiusY) {
+        this.radiusY = radiusY;
+    }
+
+    public void setSelectedColor(int selectedColor) {
+        this.selectedColor = selectedColor;
+    }
+
+    public int getNormalColor() {
+        return normalColor;
+    }
+
+    public void setNormalColor(int normalColor) {
+        this.normalColor = normalColor;
+    }
+
+    public int getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public void setBackgroundColor(int backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    public int getLineDirectionColor() {
+        return lineDirectionColor;
+    }
+
+    public void setLineDirectionColor(int lineDirectionColor) {
+        this.lineDirectionColor = lineDirectionColor;
+    }
+
+    public int getLineColor() {
+        return lineColor;
+    }
+
+    public void setLineColor(int lineColor) {
+        this.lineColor = lineColor;
+    }
+
+    public int getDirectionColor() {
+        return directionColor;
+    }
+
+    public void setDirectionColor(int directionColor) {
+        this.directionColor = directionColor;
+    }
+
+    public int getInteretColor() {
+        return interetColor;
+    }
+
+    public void setInteretColor(int interetColor) {
+        this.interetColor = interetColor;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public int getTextInteretColor() {
+        return textInteretColor;
+    }
+
+    public void setTextInteretColor(int textInteretColor) {
+        this.textInteretColor = textInteretColor;
+    }
+
+    public int getTextSize() {
+        return textSize;
+    }
+
+    public void setTextSize(int textSize) {
+        this.textSize = textSize;
+    }
+
+    public int getTextInteretSize() {
+        return textInteretSize;
+    }
+
+    public void setTextInteretSize(int textInteretSize) {
+        this.textInteretSize = textInteretSize;
+    }
+
+    public int getLineLargeur() {
+        return lineLargeur;
+    }
+
+    public void setLineLargeur(int lineLargeur) {
+        this.lineLargeur = lineLargeur;
+    }
+
+    public int getTextStroke() {
+        return textStroke;
+    }
+
+    public void setTextStroke(int textStroke) {
+        this.textStroke = textStroke;
     }
 
     public float getLeftInteret() {

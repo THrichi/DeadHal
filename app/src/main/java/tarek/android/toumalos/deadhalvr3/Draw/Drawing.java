@@ -10,6 +10,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -31,6 +32,7 @@ import java.util.List;
 
 import tarek.android.toumalos.deadhalvr3.Const.Global;
 import tarek.android.toumalos.deadhalvr3.Models.Astart;
+import tarek.android.toumalos.deadhalvr3.Models.Chemin;
 import tarek.android.toumalos.deadhalvr3.Models.Line;
 import tarek.android.toumalos.deadhalvr3.Models.Maze;
 import tarek.android.toumalos.deadhalvr3.Models.Rectangle;
@@ -69,6 +71,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     private List<Rectangle> monoTouchList;
     private Rectangle notInTheRoad;
     private String savedName = "", savedInteret = "";
+    private Astart astart;
     //dialog
     private Dialog directionDialog;
     private LinearLayout onedirection, twodirections;
@@ -105,6 +108,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        canvas.drawColor(theMaze.getBackgroundColor());
         //refresh();
         screenWidth = canvas.getWidth();
         screenHeight = canvas.getHeight();
@@ -113,8 +117,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
         for (Rectangle rect : rectangles) {
             canvas.save();
-            canvas.rotate(rect.getRotation(), rect.getRectangle().left, rect.getRectangle().top);
-            canvas.drawRect(rect.getRectangle(), rect.getPaint());
+            canvas.drawRoundRect(rect.getRectangle(), rect.getRadiusX(), rect.getRadiusY(), rect.getPaint());
             canvas.drawText(rect.getName(), rect.getTextStartX(), rect.getTextStartY(), rect.getTextPaint());
             if (!rect.getInteret().equals("")) {
                 canvas.drawRect(rect.getInteretRectangle(), rect.getInteretRectPaint());
@@ -129,20 +132,44 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             canvas.restore();
         }
         if (drawingMoovingLine) {
-            canvas.drawLine(drawingMoovingLinePoint.x, drawingMoovingLinePoint.y, drawingMoovingLineX, drawingMoovingLineY, circlePaint);
+            Paint p = new Paint();
+            p.reset();
+            p.setColor(theMaze.getLineColor());
+            p.setStrokeWidth(theMaze.getLineLargeur());
+            p.setStyle(Paint.Style.STROKE);
+            p.setAntiAlias(true);
+            canvas.drawLine(drawingMoovingLinePoint.x, drawingMoovingLinePoint.y, drawingMoovingLineX, drawingMoovingLineY, p);
         }
         for (Rectangle rect : rectangles) {
             drawLines(canvas, rect);
         }
         if (mode.equals(Global.STREAMING) && theMaze != null) {
+
             if (theMaze.getMooveX() != 0 && theMaze.getMooveY() != 0) {
                 drawFigurine(canvas, theMaze.getMooveX(), theMaze.getMooveY());
-                if (notInTheRoad != null) {
-                    drawXrect(canvas, notInTheRoad);
-                }
+                drawXrect(canvas, getEmptyRect());
                 if (!checkIfTouch()) {
                     reset();
                     notInTheRoad = null;
+                }
+            }
+
+            menuItemSelected = getSelectedRectangle(theMaze.getMooveX(), theMaze.getMooveY());
+            if (menuItemSelected != null) {
+                addMonoTouchRect();
+                colorMonoTouch();
+                for (Rectangle rect : rectangles) {
+                    if (rect.getRectangle().contains(theMaze.getMooveX(), theMaze.getMooveY())) {
+                        if (contains(menuItemSelected, rect.getUID())) {
+                            menuItemSelected = rect;
+                            colorSelected(rect);
+                        } else {
+                            if (!rect.equals(menuItemSelected)) {
+                                notInTheRoad = rect;
+                                removeMonoTouchRect(rect);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -161,6 +188,15 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         save();
     }
 
+    private Rectangle getEmptyRect() {
+        for (Rectangle rect : rectangles) {
+            if (rect.getName().equals("")) {
+                return rect;
+            }
+        }
+        return null;
+    }
+
     private void drawArrow(float X, float Y, Canvas canvas, int color) {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -176,24 +212,19 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         canvas.drawPath(path, paint);
     }
 
-    public void rotate(Rectangle rectangle, float rotation) {
-        rectangles.remove(rectangle);
-        rectangle.setRotation(rotation);
-        rectangles.add(rectangle);
-        postInvalidate();
-    }
 
     public Rectangle getSelectedRectangle() {
         return selectedRect;
     }
 
     public Rectangle getSelectedRectangle(float X, float Y) {
-        for (Rectangle rect :rectangles) {
-            if(rect.getRectangle().contains(X,Y))
+        for (Rectangle rect : rectangles) {
+            if (rect.getRectangle().contains(X, Y))
                 return rect;
         }
         return null;
     }
+
     private void drawRelationSquars(Canvas canvas, Rectangle rectangle) {
         canvas.drawCircle(rectangle.getCircleLeft().x, rectangle.getCircleLeft().y, 10, circlePaint);
         canvas.drawCircle(rectangle.getCircleRight().x, rectangle.getCircleRight().y, 10, circlePaint);
@@ -272,7 +303,6 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     public boolean onTouchEvent(MotionEvent event) {
         Boolean value = super.onTouchEvent(event);
         scaleGestureDetector.onTouchEvent(event);
-        int nbTouch = event.getPointerCount();
         gestureDetector.onTouchEvent(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
@@ -280,7 +310,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
                     for (Rectangle rect : rectangles) {
                         rect.setColor(rect.getNormalColor());
-                        if (rect.getRectangle().contains(event.getX()/scale, event.getY()/scale)) {
+                        if (rect.getRectangle().contains(event.getX() / scale, event.getY() / scale)) {
                             selectedRect = rect;
                         }
                     }
@@ -289,7 +319,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         rectangles.remove(selectedRect);
                         selectedRect.setColor(selectedRect.getSelectedColor());
                         resetColorLines();
-                        selectedRect.getLinePaint().setColor(Color.RED);
+                        selectedRect.getLinePaint().setColor(theMaze.getLineDirectionColor());
                         //changesRelationColors(selectedRect);
                         rectangles.add(selectedRect);
                     }
@@ -301,13 +331,13 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
 
             case MotionEvent.ACTION_MOVE: {
-                mooveX = event.getX()/scale;
-                mooveY = event.getY()/scale;
+                mooveX = event.getX() / scale;
+                mooveY = event.getY() / scale;
                 if (mode.equals(Global.MOOVE)) {
                     if (selectedRect != null) {
                         rectangles.remove(selectedRect);
-                        selectedRect.getRectangle().offsetTo(event.getX()/scale, event.getY()/scale);
-                        selectedRect.getInteretRectangle().offsetTo(event.getX()/scale, event.getY()/scale);
+                        selectedRect.getRectangle().offsetTo(event.getX() / scale, event.getY() / scale);
+                        selectedRect.getInteretRectangle().offsetTo(event.getX() / scale, event.getY() / scale);
                         rectangles.add(selectedRect);
                     }
                 } else if (mode.equals(Global.MINOTORE)) {
@@ -315,7 +345,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         addMonoTouchRect();
                         colorMonoTouch();
                         for (Rectangle rect : rectangles) {
-                            if (rect.getRectangle().contains(event.getX()/scale, event.getY()/scale)) {
+                            if (rect.getRectangle().contains(event.getX() / scale, event.getY() / scale)) {
                                 if (contains(menuItemSelected, rect.getUID())) {
                                     menuItemSelected = rect;
                                     colorSelected(rect);
@@ -330,37 +360,14 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         }
                     }
 
-                } else if (mode.equals(Global.STREAMING)) {
-                    if (theMaze != null) {
-                        getSelectedRectangle(theMaze.getMooveX(), theMaze.getMooveY());
-                        if (menuItemSelected != null) {
-                            addMonoTouchRect();
-                            colorMonoTouch();
-                            for (Rectangle rect : rectangles) {
-                                if (rect.getRectangle().contains(theMaze.getMooveX(), theMaze.getMooveY())) {
-                                    if (contains(menuItemSelected, rect.getUID())) {
-                                        menuItemSelected = rect;
-                                        colorSelected(rect);
-                                        return true;
-                                    } else {
-                                        if (!rect.equals(menuItemSelected)) {
-                                            notInTheRoad = rect;
-                                            removeMonoTouchRect(rect);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                 } else if (mode.equals(Global.RESIZE)) {
 
                     if (selectedRect != null) {
                         if (selectedRect.getRectangle().left + 50 < selectedRect.getRectangle().right && selectedRect.getRectangle().top + 50 < selectedRect.getRectangle().bottom) {
                             rectangles.remove(selectedRect);
-                            selectedRect.getRectangle().left = event.getX()/scale;
-                            selectedRect.getRectangle().top = event.getY()/scale;
-                            selectedRect.getInteretRectangle().offsetTo(event.getX()/scale, event.getY()/scale);
+                            selectedRect.getRectangle().left = event.getX() / scale;
+                            selectedRect.getRectangle().top = event.getY() / scale;
+                            selectedRect.getInteretRectangle().offsetTo(event.getX() / scale, event.getY() / scale);
                             rectangles.add(selectedRect);
                         } else {
                             selectedRect.getRectangle().left = selectedRect.getRectangle().left - 10;
@@ -383,23 +390,23 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                             }
                         }*/
                 } else if (mode.equals(Global.RELATION)) {
-                    drawingMoovingLineX = event.getX()/scale;
-                    drawingMoovingLineY = event.getY()/scale;
+                    drawingMoovingLineX = event.getX() / scale;
+                    drawingMoovingLineY = event.getY() / scale;
                     for (Rectangle rect : rectangles) {
                         if (!drawingMoovingLine) {
-                            if (touchedCircle(rect.getCircleLeft(), event.getX()/scale, event.getY()/scale)) {
+                            if (touchedCircle(rect.getCircleLeft(), event.getX() / scale, event.getY() / scale)) {
                                 drawingMoovingLine = true;
                                 drawingMoovingLinePoint = rect.getCircleLeft();
                                 direction_first = Rectangle.LEFT;
-                            } else if (touchedCircle(rect.getCircleRight(), event.getX()/scale, event.getY()/scale)) {
+                            } else if (touchedCircle(rect.getCircleRight(), event.getX() / scale, event.getY() / scale)) {
                                 drawingMoovingLine = true;
                                 drawingMoovingLinePoint = rect.getCircleRight();
                                 direction_first = Rectangle.RIGHT;
-                            } else if (touchedCircle(rect.getCircleTop(), event.getX()/scale, event.getY()/scale)) {
+                            } else if (touchedCircle(rect.getCircleTop(), event.getX() / scale, event.getY() / scale)) {
                                 drawingMoovingLine = true;
                                 drawingMoovingLinePoint = rect.getCircleTop();
                                 direction_first = Rectangle.TOP;
-                            } else if (touchedCircle(rect.getCircleBottom(), event.getX()/scale, event.getY()/scale)) {
+                            } else if (touchedCircle(rect.getCircleBottom(), event.getX() / scale, event.getY() / scale)) {
                                 drawingMoovingLine = true;
                                 drawingMoovingLinePoint = rect.getCircleBottom();
                                 direction_first = Rectangle.BOTTOM;
@@ -409,22 +416,19 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                     }
 
                 } else if (mode.equals(Global.ROTATE)) {
-                    for (Rectangle rect : rectangles) {
-                        rect.getRectangle().offsetTo(event.getX()/scale,event.getY()/scale);
-                    }
-                    /*if(oldX < event.getX()){
-                        setDrawingScaleX(scale*10f);
-                    }else{
-                        setDrawingScaleX(scale * (-10f));
+                    if (oldX < event.getX()) {
+                        setDrawingScaleX(5f / scale);
+                    } else {
+                        setDrawingScaleX((-5f) / scale);
                     }
 
-                    if(oldY < event.getY()){
-                        setDrawingScaleY( scale * 10f);
-                    }else {
-                        setDrawingScaleY(scale * (-10f));
+                    if (oldY < event.getY()) {
+                        setDrawingScaleY(5f / scale);
+                    } else {
+                        setDrawingScaleY((-5f) / scale);
                     }
                     oldX = event.getX();
-                    oldY = event.getY();*/
+                    oldY = event.getY();
                 }
                 postInvalidate();
             }
@@ -448,19 +452,19 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                 Rectangle rectangle = null;
                 for (Rectangle rect : rectangles) {
                     drawingMoovingLine = false;
-                    if (touchedCircle(rect.getCircleLeft(), event.getX()/scale, event.getY()/scale)) {
+                    if (touchedCircle(rect.getCircleLeft(), event.getX() / scale, event.getY() / scale)) {
                         touched = true;
                         rectangle = rect;
                         direction_second = Rectangle.LEFT;
-                    } else if (touchedCircle(rect.getCircleRight(), event.getX()/scale, event.getY()/scale)) {
+                    } else if (touchedCircle(rect.getCircleRight(), event.getX() / scale, event.getY() / scale)) {
                         touched = true;
                         rectangle = rect;
                         direction_second = Rectangle.RIGHT;
-                    } else if (touchedCircle(rect.getCircleTop(), event.getX()/scale, event.getY()/scale)) {
+                    } else if (touchedCircle(rect.getCircleTop(), event.getX() / scale, event.getY() / scale)) {
                         touched = true;
                         rectangle = rect;
                         direction_second = Rectangle.TOP;
-                    } else if (touchedCircle(rect.getCircleBottom(), event.getX()/scale, event.getY()/scale)) {
+                    } else if (touchedCircle(rect.getCircleBottom(), event.getX() / scale, event.getY() / scale)) {
                         touched = true;
                         rectangle = rect;
                         direction_second = Rectangle.BOTTOM;
@@ -483,7 +487,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         if (rect != null) {
             rectangles.remove(rect);
             resetColorLines();
-            rect.getLinePaint().setColor(Color.RED);
+            rect.getLinePaint().setColor(theMaze.getLineDirectionColor());
             //changesRelationColors(selectedRect);
             rectangles.add(rect);
         }
@@ -531,39 +535,40 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     }
 
     private void drawXrect(Canvas canvas, Rectangle rectangle) {
-        Paint paint = new Paint();
-        paint.reset();
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(7);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setAntiAlias(true);
-        if (!rectangle.getName().equals("")) {
-            savedName = rectangle.getName();
+        if (rectangle != null) {
+            Paint paint = new Paint();
+            paint.reset();
+            paint.setColor(Color.RED);
+            paint.setStrokeWidth(7);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setAntiAlias(true);
+            if (!rectangle.getName().equals("")) {
+                savedName = rectangle.getName();
+            }
+            if (!rectangle.getInteret().equals("")) {
+                savedInteret = rectangle.getInteret();
+            }
+            rectangles.remove(rectangle);
+            rectangle.setName("");
+            rectangle.setInteret("");
+            rectangle.getPaint().setStyle(Paint.Style.STROKE);
+            canvas.drawLine(rectangle.getRectangle().left, rectangle.getRectangle().top, rectangle.getRectangle().right, rectangle.getRectangle().bottom, paint);
+            canvas.drawLine(rectangle.getRectangle().right, rectangle.getRectangle().top, rectangle.getRectangle().left, rectangle.getRectangle().bottom, paint);
+            rectangles.add(rectangle);
+            postInvalidate();
         }
-        if (!rectangle.getInteret().equals("")) {
-            savedInteret = rectangle.getInteret();
-        }
-
-        rectangles.remove(rectangle);
-        rectangle.setName("");
-        rectangle.setInteret("");
-        rectangle.getPaint().setStyle(Paint.Style.STROKE);
-        canvas.drawLine(rectangle.getRectangle().left, rectangle.getRectangle().top, rectangle.getRectangle().right, rectangle.getRectangle().bottom, paint);
-        canvas.drawLine(rectangle.getRectangle().right, rectangle.getRectangle().top, rectangle.getRectangle().left, rectangle.getRectangle().bottom, paint);
-        rectangles.add(rectangle);
-        postInvalidate();
     }
 
     private void colorMonoTouch() {
         for (Rectangle rect : monoTouchList) {
-            rect.setColor(rect.getMonotouchColor());
+            rect.setColor(rect.getDirectionColor());
         }
         postInvalidate();
     }
 
     private void resetColorLines() {
         for (Rectangle rect : rectangles) {
-            rect.getLinePaint().setColor(Color.BLACK);
+            rect.getLinePaint().setColor(theMaze.getLineColor());
         }
     }
 
@@ -627,10 +632,10 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     }
 
     private boolean touchedCircle(Point point, float x, float y) {
-        double dx = Math.pow(x - point.x, 2);
-        double dy = Math.pow(y - point.y, 2);
+        double dx = Math.pow(x - point.x, 10);
+        double dy = Math.pow(y - point.y, 10);
 
-        if (dx + dy < Math.pow(20, 2)) {
+        if (dx + dy < Math.pow(50, 10)) {
             return true;
         }
         return false;
@@ -650,10 +655,13 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     public void setMode(String mode) {
         this.mode = mode;
+        postInvalidate();
     }
 
 
     public void setScale(float scale) {
+        if (!mode.equals(Global.STREAMING))
+            theMaze.setScale(scale);
         this.scale = scale;
         postInvalidate();
     }
@@ -686,16 +694,6 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return scaleX;
     }
 */
-
-    public void refresh() {
-        if (theMaze != null) {
-            this.rectangles = new ArrayList<>();
-            for (RectangleParser rectangleParser : theMaze.getRectangles()) {
-                this.rectangles.add(new Rectangle(rectangleParser));
-            }
-        }
-
-    }
 
     public boolean isSelectedItem() {
         if (selectedRect != null)
@@ -734,7 +732,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     }
 
     public Maze save() {
-        if (theMaze != null && rectangles != null) {
+        if (theMaze != null && rectangles != null && !mode.equals(Global.STREAMING)) {
             List<RectangleParser> rectangleParserResult = new ArrayList<>();
             for (Rectangle rectangle : rectangles) {
                 RectangleParser parser = new RectangleParser(rectangle.getUID(),
@@ -748,7 +746,23 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
                         rectangle.getInteretRectangle().bottom,
                         rectangle.getName(),
                         rectangle.getInteret(),
-                        rectangle.getRectanglesId());
+                        rectangle.getRectanglesId(),
+                        rectangle.getSelectedColor(),
+                        rectangle.getNormalColor(),
+                        rectangle.getBackgroundColor(),
+                        rectangle.getLineDirectionColor(),
+                        rectangle.getLineColor(),
+                        rectangle.getDirectionColor(),
+                        rectangle.getInteretColor(),
+                        rectangle.getTextColor(),
+                        rectangle.getTextInteretColor(),
+                        rectangle.getTextSize(),
+                        rectangle.getTextInteretSize(),
+                        rectangle.getLineLargeur(),
+                        rectangle.getTextStroke(),
+                        rectangle.getRadiusX(),
+                        rectangle.getRadiusY()
+                );
 
                 rectangleParserResult.add(parser);
             }
@@ -776,11 +790,28 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
             mazeBookRefDoc.set(this.theMaze);
             this.rectangles = new ArrayList<>();
             for (RectangleParser parser : this.theMaze.getRectangles()) {
-                this.rectangles.add(new Rectangle(parser));
+                Rectangle tmp = new Rectangle(parser);
+                tmp.setBackgroundColor(theMaze.getBackgroundColor());
+                tmp.setNormalColor(theMaze.getNormalColor());
+                tmp.setSelectedColor(theMaze.getSelectedColor());
+                tmp.setLineDirectionColor(theMaze.getLineDirectionColor());
+                tmp.setLineColor(theMaze.getLineColor());
+                tmp.setDirectionColor(theMaze.getDirectionColor());
+                tmp.setInteretColor(theMaze.getInteretColor());
+                tmp.setTextColor(theMaze.getTextColor());
+                tmp.setTextInteretColor(theMaze.getTextInteretColor());
+                tmp.setTextSize(theMaze.getTextSize());
+                tmp.setTextInteretSize(theMaze.getTextInteretSize());
+                tmp.setTextStroke(theMaze.getTextStroke());
+                tmp.setLineLargeur(theMaze.getLineLargeur());
+                this.rectangles.add(tmp);
             }
+            if (!mode.equals(Global.STREAMING))
+                scale = this.theMaze.getScale();
             postInvalidate();
         }
     }
+
     public void setDrawingScaleY(float scaleY) {
         this.scaleY = scaleY;
         movingScalY = true;
@@ -796,21 +827,28 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         scale();
         postInvalidate();
     }
-    public float getDrawingScaleX(){
+
+    public float getDrawingScaleX() {
         return this.scaleX;
     }
-    public float getDrawingScaleY(){
+
+    public float getDrawingScaleY() {
         return this.scaleY;
     }
+
     public void scale() {
         List<Rectangle> rectangles = new ArrayList<>();
         for (Rectangle rect : this.rectangles) {
             if (movingScalY) {
                 rect.getRectangle().top = rect.getRectangle().top + scaleY;
+                rect.getInteretRectangle().top = rect.getInteretRectangle().top + scaleY;
                 rect.getRectangle().bottom = rect.getRectangle().bottom + scaleY;
+                rect.getInteretRectangle().bottom = rect.getInteretRectangle().bottom + scaleY;
             } else if (movingScalX) {
                 rect.getRectangle().left = rect.getRectangle().left + scaleX;
+                rect.getInteretRectangle().left = rect.getInteretRectangle().left + scaleX;
                 rect.getRectangle().right = rect.getRectangle().right + scaleX;
+                rect.getInteretRectangle().right = rect.getInteretRectangle().right + scaleX;
             }
             rectangles.add(rect);
         }
@@ -871,7 +909,7 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
     public void onLongPress(MotionEvent e) {
         if (mode.equals(Global.SELECTED)) {
             for (Rectangle rect : rectangles) {
-                if (rect.getRectangle().contains(e.getX(), e.getY())) {
+                if (rect.getRectangle().contains(e.getX() / scale, e.getY() / scale)) {
                     menuItemSelected = rect;
                 }
             }
@@ -949,27 +987,47 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
         return null;
     }
 
-    public void calculerLeChemin() {
-        Rectangle start = getRectangleByName("Toto0");
+    public void calculerLeChemin(Rectangle start) {
         Rectangle end = getRectangleByName("Toto8");
-        Astart astart = new Astart(rectangles, start, end);
-        /*astart.calculer(rectangles.get(2));
-        Log.d(Global.TAG, "rectangles.get(0): " + rectangles.get(0).getName());
-        Log.d(Global.TAG, "rectangles.get(2): " + rectangles.get(2).getName());
-        Log.d(Global.TAG, "Astar: " + astart.toString());*/
+        astart = new Astart(rectangles, start, end);
         Log.d(Global.TAG, "rectangles.get(0): " + start.getName());
         Log.d(Global.TAG, "rectangles.get(2): " + end.getName());
         astart.getAllWays(start);
         Log.d(Global.TAG, "astar : " + astart.toString());
-        /*Rectangle rectangle = rectangles.get(0);
-        for (Line line : rectangle.getRectanglesId()) {
-            Rectangle idRect = getRectangleById(line.getGoToId());
-            if (idRect != null) {
-                Point startPoint = getLinePoint(rectangle.getRectangle(), line.getDirection_first());
-                Point stopPoint = getLinePoint(idRect.getRectangle(), line.getDirection_second());
-                Log.d(Global.TAG, "distance : " + rectangle.getName() + " --> " + idRect.getName() + " = " + line.distance(startPoint,stopPoint));
+        Log.d(Global.TAG, "getMeilleurChemin : " + getMeilleurChemin().toString());
+
+    }
+
+    private Chemin getMeilleurChemin() {
+        double min = Double.MAX_VALUE;
+        Chemin resut = null;
+        for (Chemin chemin : astart.getChemins()) {
+            double distance = calculeDistance(chemin);
+            chemin.setDistance(distance);
+            if(distance<min){
+                distance = min;
+                resut = chemin;
             }
-        }*/
+        }
+        return resut;
+    }
+
+    private double calculeDistance(Chemin chemin) {
+        double result = 0;
+        List<Rectangle> tmp = chemin.getChemins();
+        for (int i = 0; i < tmp.size() - 2; i++) {
+            Point startPoint = getPoint(tmp.get(i));
+            Point stopPoint = getPoint(tmp.get(i+1));
+            result += new Line().distance(startPoint,stopPoint);
+        }
+        return result;
+    }
+
+    private Point getPoint(Rectangle rectangle) {
+        Point point = new Point();
+        point.x = (int)(rectangle.getRectangle().left + rectangle.getRectangle().right )/ 2;
+        point.y = (int)(rectangle.getRectangle().top + rectangle.getRectangle().bottom )/ 2;
+        return point;
     }
 
     private void drawFigurine(Canvas canvas, float X, float Y) {
@@ -981,44 +1039,46 @@ public class Drawing extends View implements GestureDetector.OnGestureListener, 
 
     }
 
-    private void ZoonOut() {
+    public boolean checkName(String name) {
         for (Rectangle rect : rectangles) {
-            rect.setLeft(rect.getLeft() - 10);
-            rect.setTop(rect.getTop() - 10);
-            rect.setRight(rect.getRight() + 10);
-            rect.setBottom(rect.getBottom() + 10);
+            if (rect.getName().toLowerCase().equals(name.toLowerCase())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public String getGoTo(Rectangle infosRectangle) {
+        String s = "";
+        for (Line rect : infosRectangle.getRectanglesId()) {
+            s += getRectangleById(rect.getGoToId()).getName() + "\n";
+        }
+        return s;
+    }
+
+    public void setRadiusX(int progress) {
+        if (menuItemSelected != null) {
+            rectangles.remove(menuItemSelected);
+            menuItemSelected.setRadiusX(progress);
+            rectangles.add(menuItemSelected);
+            postInvalidate();
         }
     }
 
-    private void ZoonIn() {
-        for (Rectangle rect : rectangles) {
-            rect.setLeft(rect.getLeft() + 10);
-            rect.setTop(rect.getTop() + 10);
-            rect.setRight(rect.getRight() - 10);
-            rect.setBottom(rect.getBottom() - 10);
-
-            rect.setLeft(rect.getLeft() + 10);
-            rect.setTop(rect.getTop() + 10);
-            rect.setRight(rect.getRight() - 10);
-            rect.setBottom(rect.getBottom() - 10);
+    public void setRadiusY(int progress) {
+        if (menuItemSelected != null) {
+            rectangles.remove(menuItemSelected);
+            menuItemSelected.setRadiusY(progress);
+            rectangles.add(menuItemSelected);
+            postInvalidate();
         }
     }
-
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            //if (mode.equals(Global.STREAMING) || mode.equals(Global.ZOOM)) {
             scale = scale * detector.getScaleFactor();
             setScale(scale);
-
-            //}
-            /*if (previousScal > detector.getScaleFactor()) {
-                ZoonIn();
-            } else {
-                ZoonOut();
-            }
-            previousScal = detector.getScaleFactor();*/
             return true;
         }
     }

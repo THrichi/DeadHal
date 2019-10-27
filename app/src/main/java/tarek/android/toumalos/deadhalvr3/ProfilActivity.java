@@ -476,15 +476,20 @@ public class ProfilActivity extends AppCompatActivity {
 
     private void addMaze() {
         if (nameNewMaze.getText().toString().length() > 0) {
-            Maze m1 = new Maze(user.getUid(), codeEditText.getText().toString(), generateCode(), nameNewMaze.getText().toString(), true);
-            mazebookRef.document(m1.getUid()).set(m1);
-            if (currentUser != null) {
-                currentUser.getMazes().add(m1.getUid());
-                userDocRef.set(currentUser);
-            }
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("MazeId", m1.getUid());
-            startActivity(intent);
+            final Maze m1 = new Maze(user.getUid(), codeEditText.getText().toString(), generateCode(), nameNewMaze.getText().toString(), true);
+            mazebookRef.document(m1.getUid()).set(m1)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            if (currentUser != null) {
+                                currentUser.getMazes().add(m1.getUid());
+                                userDocRef.set(currentUser);
+                            }
+                            Intent intent = new Intent(context, MainActivity.class);
+                            intent.putExtra("MazeId", m1.getUid());
+                            startActivity(intent);
+                        }
+                    });
         }
     }
 
@@ -588,7 +593,11 @@ public class ProfilActivity extends AppCompatActivity {
         mazeAdapter.setOnOpenClickListener(new MazeAdapter.OnOpenClickListener() {
             @Override
             public void onItemClick(int position) {
-                openMaze(mazes.get(position));
+                if (mazes.get(position).isOnLine()) {
+                    kickMaze(mazes.get(position));
+                } else {
+                    openMaze(mazes.get(position));
+                }
             }
         });
         mazeAdapter.setOnDetailsClickListener(new MazeAdapter.OnDetailsClickListener() {
@@ -613,6 +622,10 @@ public class ProfilActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    private void kickMaze(Maze maze) {
+        mazebookRef.document(maze.getUid()).update("onLine", false);
     }
 
     public void openMaze(Maze maze) {

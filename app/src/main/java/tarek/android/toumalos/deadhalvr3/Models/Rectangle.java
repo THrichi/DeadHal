@@ -21,17 +21,11 @@ public class Rectangle implements Serializable {
     private Paint linePaint;
     private RectF rectangle;
     private RectF interetRectangle;
-    private int normalColor;
-    private int monotouchColor;
-    private int selectedColor;
-    private float rotation;
     private String name;
     private Point circleLeft;
     private Point circleRight;
     private Point circleTop;
     private Point circleBottom;
-    //private int textSize;
-    //private int textColor;
     private Paint textPaint;
     private Paint interetPaint;
     private Paint interetRectPaint;
@@ -42,59 +36,41 @@ public class Rectangle implements Serializable {
     private float rightInteret;
     private float bottomInteret;
 
+    //options
+    private int selectedColor;
+    private int normalColor;
+    private int backgroundColor;
+    private int lineDirectionColor;
+    private int lineColor;
+    private int directionColor;
+    private int interetColor;
+    private int textColor;
+    private int textInteretColor;
+    private int textSize;
+    private int textInteretSize;
+    private int lineLargeur;
+    private int textStroke;
+    private int radiusX;
+    private int radiusY;
 
-    /*public Rectangle(String name, int right, int bottom) {
-        UUID uuid = UUID.randomUUID();
-        this.UID = uuid.toString();
-        this.normalColor = Color.rgb(128,128,192);
-        this.selectedColor = Color.rgb(119,187,255);
-        paint = new Paint();
-        paint.reset();
-        paint.setColor(normalColor);
-        paint.setStrokeWidth(7);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setAntiAlias(false);
-        rectangle = new RectF(0,0,right,bottom);
-        interetRectangle = new RectF(getRecInteretLeft(),getRecInteretTop(),getRecInteretRight(),getRecInteretBottom());
-
-        this.name = name;
-        //this.textSize = textSize;
-        //this.textColor = textColor;
-        this.interet ="Cuisine";
-
-        textPaint = new Paint();
-        textPaint.reset();
-        textPaint.setColor(Color.BLACK);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setStrokeWidth(10);
-        textPaint.setTextSize(62);
-        textPaint.setStyle(Paint.Style.FILL);
-        textPaint.setAntiAlias(false);
-
-        interetPaint = new Paint();
-        interetPaint.reset();
-        interetPaint.setColor(Color.BLACK);
-        interetPaint.setTextAlign(Paint.Align.CENTER);
-        interetPaint.setStrokeWidth(5);
-        interetPaint.setTextSize(62/2);
-        interetPaint.setStyle(Paint.Style.FILL);
-        interetPaint.setAntiAlias(false);
-
-
-        interetRectPaint = new Paint();
-        interetRectPaint.reset();
-        interetRectPaint.setColor(Color.rgb(119,119,0));
-        interetRectPaint.setStrokeWidth(5);
-        interetRectPaint.setStyle(Paint.Style.FILL);
-        interetRectPaint.setAntiAlias(false);
-    }*/
     public Rectangle(RectangleParser parser) {
-
         this.UID = parser.getId();
         this.rectanglesId = parser.getRectanglesId();
-        this.normalColor = Color.rgb(128, 128, 192);
-        this.monotouchColor = Color.rgb(56, 224, 254);
-        this.selectedColor = Color.rgb(119, 187, 255);
+        this.normalColor = parser.getNormalColor();
+        this.directionColor = parser.getDirectionColor();
+        this.selectedColor = parser.getSelectedColor();
+        this.backgroundColor = parser.getBackgroundColor();
+        this.lineDirectionColor = parser.getLineDirectionColor();
+        this.lineColor = parser.getLineColor();
+        this.interetColor = parser.getInteretColor();
+        this.textColor = parser.getTextColor();
+        this.textInteretColor = parser.getTextInteretColor();
+        this.textSize = parser.getTextSize();
+        this.textInteretSize = parser.getTextInteretSize();
+        this.lineLargeur = parser.getLineLargeur();
+        this.textStroke = parser.getTextStroke();
+        this.radiusX = parser.getRadiusX();
+        this.radiusY = parser.getRadiusY();
         paint = new Paint();
         paint.reset();
         paint.setColor(normalColor);
@@ -112,36 +88,148 @@ public class Rectangle implements Serializable {
 
         textPaint = new Paint();
         textPaint.reset();
-        textPaint.setColor(Color.BLACK);
+        textPaint.setColor(getTextColor());
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setStrokeWidth(10);
-        textPaint.setTextSize(62);
+        textPaint.setStrokeWidth(getTextStroke());
+        textPaint.setTextSize(getTextSize());
         textPaint.setStyle(Paint.Style.FILL);
         textPaint.setAntiAlias(true);
 
         interetPaint = new Paint();
         interetPaint.reset();
-        interetPaint.setColor(Color.BLACK);
+        interetPaint.setColor(getTextInteretColor());
         interetPaint.setTextAlign(Paint.Align.CENTER);
-        interetPaint.setStrokeWidth(5);
-        interetPaint.setTextSize(62 / 2);
+        interetPaint.setStrokeWidth(getTextStroke()/2);
+        interetPaint.setTextSize(getTextInteretSize());
         interetPaint.setStyle(Paint.Style.FILL);
         interetPaint.setAntiAlias(true);
 
 
         interetRectPaint = new Paint();
         interetRectPaint.reset();
-        interetRectPaint.setColor(Color.rgb(119, 119, 0));
+        interetRectPaint.setColor(getInteretColor());
         interetRectPaint.setStrokeWidth(5);
         interetRectPaint.setStyle(Paint.Style.FILL);
         interetRectPaint.setAntiAlias(true);
 
         linePaint = new Paint();
         linePaint.reset();
-        linePaint.setColor(Color.BLACK);
-        linePaint.setStrokeWidth(10);
+        linePaint.setColor(getLineColor());
+        linePaint.setStrokeWidth(getLineLargeur());
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setAntiAlias(true);
+    }
+
+    public int getRadiusX() {
+        return radiusX;
+    }
+
+    public void setRadiusX(int radiusX) {
+        this.radiusX = radiusX;
+    }
+
+    public int getRadiusY() {
+        return radiusY;
+    }
+
+    public void setRadiusY(int radiusY) {
+        this.radiusY = radiusY;
+    }
+
+    public void setSelectedColor(int selectedColor) {
+        this.selectedColor = selectedColor;
+    }
+
+    public void setNormalColor(int normalColor) {
+        this.normalColor = normalColor;
+    }
+
+    public int getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public void setBackgroundColor(int backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    public int getLineDirectionColor() {
+        return lineDirectionColor;
+    }
+
+    public void setLineDirectionColor(int lineDirectionColor) {
+        this.lineDirectionColor = lineDirectionColor;
+    }
+
+    public int getLineColor() {
+        return lineColor;
+    }
+
+    public void setLineColor(int lineColor) {
+        this.lineColor = lineColor;
+    }
+
+    public int getDirectionColor() {
+        return directionColor;
+    }
+
+    public void setDirectionColor(int directionColor) {
+        this.directionColor = directionColor;
+    }
+
+    public int getInteretColor() {
+        return interetColor;
+    }
+
+    public void setInteretColor(int interetColor) {
+        this.interetColor = interetColor;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public int getTextInteretColor() {
+        return textInteretColor;
+    }
+
+    public void setTextInteretColor(int textInteretColor) {
+        this.textInteretColor = textInteretColor;
+    }
+
+    public int getTextSize() {
+        return textSize;
+    }
+
+    public void setTextSize(int textSize) {
+        this.textSize = textSize;
+    }
+
+    public int getTextInteretSize() {
+        return textInteretSize;
+    }
+
+    public void setTextInteretSize(int textInteretSize) {
+        this.textInteretSize = textInteretSize;
+    }
+
+    public int getLineLargeur() {
+        return lineLargeur;
+    }
+
+    public void setLineLargeur(int lineLargeur) {
+        this.lineLargeur = lineLargeur;
+    }
+
+    public int getTextStroke() {
+        return textStroke;
+    }
+
+    public void setTextStroke(int textStroke) {
+        this.textStroke = textStroke;
     }
 
     public Point getCircleLeft() {
@@ -202,14 +290,6 @@ public class Rectangle implements Serializable {
 
     public float getBottom() {
         return this.rectangle.bottom;
-    }
-
-    public int getMonotouchColor() {
-        return monotouchColor;
-    }
-
-    public void setMonotouchColor(int monotouchColor) {
-        this.monotouchColor = monotouchColor;
     }
 
     public float getTopInteret() {
@@ -325,13 +405,6 @@ public class Rectangle implements Serializable {
         this.paint.setColor(color);
     }
 
-    public float getRotation() {
-        return rotation;
-    }
-
-    public void setRotation(float rotation) {
-        this.rotation = rotation;
-    }
 
     public String getName() {
         return name;
