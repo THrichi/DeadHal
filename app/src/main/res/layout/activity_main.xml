@@ -139,7 +139,7 @@
             android:layout_weight="1"
             android:hint="Width"
             android:inputType="number"
-            android:text="400"
+            android:text="300"
             android:textAlignment="center" />
 
         <EditText
@@ -149,7 +149,7 @@
             android:layout_weight="1"
             android:hint="Height"
             android:inputType="number"
-            android:text="400"
+            android:text="300"
             android:textAlignment="center" />
 
         <EditText
