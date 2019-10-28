@@ -159,7 +159,6 @@
             android:layout_weight="1"
             android:hint="Name"
             android:inputType="text"
-            android:text="Toto"
             android:textAlignment="center" />
 
         <de.hdodenhof.circleimageview.CircleImageView
